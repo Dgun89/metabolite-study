@@ -1,11 +1,15 @@
 import requests
 
-name = "Kynurenic acid"
-url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{name}/cids/JSON"
+def get_cid(name):
+    url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{name}/cids/JSON"
+    response = requests.get(url)
 
-response = requests.get(url)
-print(response.status_code)
-print(response.json())
+    if response.status_code == 200:
+        cid = response.json()["IdentifierList"]["CID"][0]
+        return cid
+    else:
+        return None
 
-cid = response.json()["IdentifierList"]["CID"][0]
-print("CID:", cid)
+print(get_cid("Glucose"))
+print(get_cid("Kynurenic acid"))
+print(get_cid("asdf1234"))
