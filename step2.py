@@ -16,7 +16,10 @@ ws = wb.active
 #print(ws.max_row)
 #print(ws.max_column)
 
-for row in ws.iter_rows(min_row=2, max_row=5, values_only=True):
+for i, row in enumerate(ws.iter_rows(min_row=2, max_row=5, values_only=True)):
     name = row[1]
     cid = get_cid(name)
-    print(name, "→", cid)
+    ws.cell(row=i+2, column=5).value = cid
+
+wb.save("metabolites_step1_PubChem_ex.xlsx")
+print("Saved successfully!")
