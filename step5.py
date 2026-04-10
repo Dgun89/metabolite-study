@@ -26,9 +26,9 @@ for row in ws.iter_rows(min_row=2, max_row=ws.max_row, values_only=True):
 
 total = full + kegg_only + hmdb_only + pubchem_only + unresolved
 
-print(f"fully mapped (all 3):  {full} ({full/total*100:.1f}%)")
-print(f"KEGG only:             {kegg_only} ({kegg_only/total*100:.1f}%)")
-print(f"HMDB only:             {hmdb_only} ({hmdb_only/total*100:.1f}%)")
-print(f"PubChem only:          {pubchem_only} ({pubchem_only/total*100:.1f}%)")
-print(f"unresolved:            {unresolved} ({unresolved/total*100:.1f}%)")
-print(f"total:                 {total}")
+print(f"PubChem + KEGG + HMDB (all 3): {full} ({full/total*100:.1f}%)")
+print(f"PubChem + KEGG only:           {kegg_only} ({kegg_only/total*100:.1f}%)")
+print(f"PubChem + HMDB only:           {hmdb_only} ({hmdb_only/total*100:.1f}%)")
+print(f"PubChem only:                  {pubchem_only} ({pubchem_only/total*100:.1f}%)")
+print(f"Unresolved (none):             {unresolved} ({unresolved/total*100:.1f}%)")
+print(f"Total:                         {total}")
