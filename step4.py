@@ -1,4 +1,6 @@
+import openpyxl
 import requests
+import time
 
 # cid = "3845"
 # url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/{cid}/JSON"
@@ -35,7 +37,24 @@ def get_hmdb_kegg(cid):
 
 print(get_hmdb_kegg("3845"))
 
+wb = openpyxl.load_workbook("metabolites_step1_PubChem.xlsx")
+ws = wb.active
 
+for i, row in enumerate(ws.iter_rows(min_row=2, max_row=ws.max_row, values_only=True)):
+    cid = row[4] # Column E
+
+    if cid is None: # Skip
+        continue
+
+    ids = get_hmdb_kegg(str(cid))
+    ws.cell(row=i+2, column=3).value = ids["kegg"] # Column C
+    ws.cell(row=i+2, column=4).value = ids["hmdb"] # Column D
+
+    print(f"{i+1} {row[1]} → KEGG: {ids['kegg']} HMDB: {ids['hmdb']}")
+    time.sleep(0.3)
+
+wb.save("metabolites_step2_KEGG_HMDB.xlsx")
+print("Saved successfully!")
 
 # print(type(data))  # 어떤 타입인지
 # print(type(data["Record"]))  # Record는 어떤 타입인지
