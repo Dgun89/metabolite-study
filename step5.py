@@ -32,3 +32,17 @@ print(f"PubChem + HMDB only:           {hmdb_only} ({hmdb_only/total*100:.1f}%)"
 print(f"PubChem only:                  {pubchem_only} ({pubchem_only/total*100:.1f}%)")
 print(f"Unresolved (none):             {unresolved} ({unresolved/total*100:.1f}%)")
 print(f"Total:                         {total}")
+
+names = []
+for row in ws.iter_rows(min_row=2, max_row=ws.max_row, values_only=True):
+    if row[1]:  # column B
+        names.append(row[1])
+
+total_rows = len(names)
+unique = len(set(names))
+duplicates = total_rows - unique
+
+print(f"\n--- Duplicate Check ---")
+print(f"total rows:         {total_rows}")
+print(f"unique metabolites: {unique}")
+print(f"duplicate rows:     {duplicates}")
