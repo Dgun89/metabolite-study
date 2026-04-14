@@ -67,7 +67,7 @@ for i, row in enumerate(ws.iter_rows(min_row=2, max_row=ws.max_row), start=0):
     ids = get_hmdb_kegg(str(int(float(cid))))
     ws.cell(row=i+2, column=4).value = ids["kegg"] or kegg
     ws.cell(row=i+2, column=5).value = ids["hmdb"] or hmdb
-    print(f"[{count}/{total}] {row[2]} → KEGG: {ids['kegg']} HMDB: {ids['hmdb']}")
+    print(f"[{count}/{total}] {row[2].value} → KEGG: {ids['kegg']} HMDB: {ids['hmdb']}")
     time.sleep(0.3)
 
 # ─────────────────────────────
