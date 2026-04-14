@@ -53,10 +53,10 @@ print(f"Target: {total} rows")
 # 3. 루프 실행
 # ─────────────────────────────
 count = 0
-for i, row in enumerate(ws.iter_rows(min_row=2, max_row=ws.max_row, values_only=True)):
-    cid = row[5]   # F열 = PubChem
-    kegg = row[3]  # D열 = KEGG
-    hmdb = row[4]  # E열 = HMDB
+for i, row in enumerate(ws.iter_rows(min_row=2, max_row=ws.max_row), start=0):
+    cid = row[5].value    # .value 추가
+    kegg = row[3].value   # .value 추가
+    hmdb = row[4].value   # .value 추가
 
     if cid is None:       # CID 없으면 건너뜀
         continue
@@ -73,5 +73,5 @@ for i, row in enumerate(ws.iter_rows(min_row=2, max_row=ws.max_row, values_only=
 # ─────────────────────────────
 # 4. 저장
 # ─────────────────────────────
-wb.save("metabolites_step10.xlsx")
+wb.save("metabolites_step10_ver2.xlsx")
 print("Saved successfully!")
