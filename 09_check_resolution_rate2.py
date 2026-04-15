@@ -1,6 +1,11 @@
 import pandas as pd
-
-df = pd.read_excel('metabolites_step8.xlsx')
+# df = pd.read_excel('metabolites_step10.xlsx')
+df = pd.read_excel('metabolites_step10_ver4.xlsx')
+print(df.columns.tolist())
+print(df['KEGG'].notna().sum())
+print(df['HMDB'].notna().sum())
+# df = pd.read_excel('metabolites_step8.xlsx')
+# df = pd.read_excel('metabolites_step10.xlsx')
 
 print(f"PubChem + KEGG + HMDB: {len(df[df['KEGG'].notna() & df['HMDB'].notna() & df['PubChem'].notna()])}")
 print(f"PubChem + KEGG only: {len(df[df['KEGG'].notna() & df['HMDB'].isna() & df['PubChem'].notna()])}")
