@@ -13,6 +13,10 @@
 | 08_resolve_by_inchikey.py      | Resolve unresolved metabolites via COCONUT API → InChIKey → PubChem CID |
 | 09_check_resolution_rate2.py   | Check resolution rates after InChIKey-based search                 |
 | 10_extract_kegg_hmdb2.py       | Extract KEGG and HMDB IDs for newly resolved metabolites via PubChem PUG View |
+| 11_fill_inchikey.py            | Fill InChIKey column via COCONUT API                               |
+| 12_test_unichem.py             | Test UniChem API for HMDB extraction                               |
+| 13_fill_hmdb_unichem.py        | Attempt to fill HMDB via UniChem API (limited results)             |
+| 14_fill_kegg_hmdb_chebi.py     | Fill KEGG and HMDB via ChEBI API (es_search + compound endpoint)   |
 
 ---
 
@@ -51,3 +55,19 @@
 | PubChem only | 657 | 72.8% |
 | Unresolved | 36 | 4.0% |
 | **Total** | **902** | **100%** |
+
+### Day 5
+- Filled InChIKey for 646 metabolites via COCONUT API (11_fill_inchikey.py)
+- Explored UniChem API for HMDB extraction (limited coverage for rare natural products)
+- Discovered ChEBI 2.0 REST API endpoints
+- Filled KEGG/HMDB via ChEBI API (14_fill_kegg_hmdb_chebi.py)
+
+| Category | Count | % |
+|----------|-------|---|
+| PubChem + KEGG + HMDB | 118 | 13.1% |
+| PubChem + KEGG only | 26 | 2.9% |
+| PubChem + HMDB only | 84 | 9.3% |
+| PubChem only | 638 | 70.7% |
+| Unresolved | 36 | 4.0% |
+| **Total** | **902** | **100%** |
+| InChIKey | 826 | 91.6% |
