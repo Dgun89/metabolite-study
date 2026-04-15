@@ -12,6 +12,7 @@
 | 07_remove_duplicates.py        | Remove duplicate entries: 1015 → 902 rows                         |
 | 08_resolve_by_inchikey.py      | Resolve unresolved metabolites via COCONUT API → InChIKey → PubChem CID |
 | 09_check_resolution_rate2.py   | Check resolution rates after InChIKey-based search                 |
+| 10_extract_kegg_hmdb2.py       | Extract KEGG and HMDB IDs for newly resolved metabolites via PubChem PUG View |
 
 ---
 
@@ -38,6 +39,9 @@
 - Built COCONUT API → InChIKey → PubChem CID pipeline (08_resolve_by_inchikey.py)
 - Resolved 220 additional metabolites
 - Remaining 36 confirmed as unregistered in PubChem
+- Attempted KEGG/HMDB extraction for newly resolved metabolites (10_extract_kegg_hmdb2.py)
+- Applied .env for API credential security
+- File cleanup and reorganization
 
 | Category | Count | % |
 |----------|-------|---|
