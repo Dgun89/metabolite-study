@@ -16,7 +16,8 @@
 | 11_fill_inchikey.py            | Fill InChIKey column via COCONUT API                               |
 | 12_test_unichem.py             | Test UniChem API for HMDB extraction                               |
 | 13_fill_hmdb_unichem.py        | Attempt to fill HMDB via UniChem API (limited results)             |
-| 14_fill_kegg_hmdb_chebi.py     | Fill KEGG and HMDB via ChEBI API (es_search + compound endpoint)   |
+| 14_fill_kegg_hmdb_chebi.py     | Fill KEGG and HMDB via ChEBI 2.0 REST API                          |
+| 15_fill_kegg_hmdb_mw.py        | Fill KEGG and HMDB via Metabolomics Workbench REST API (InChIKey)  |
 
 ---
 
@@ -61,13 +62,14 @@
 - Explored UniChem API for HMDB extraction (limited coverage for rare natural products)
 - Discovered ChEBI 2.0 REST API endpoints
 - Filled KEGG/HMDB via ChEBI API (14_fill_kegg_hmdb_chebi.py)
+- Filled KEGG/HMDB via Metabolomics Workbench API using InChIKey (15_fill_kegg_hmdb_mw.py)
 
 | Category | Count | % |
 |----------|-------|---|
-| PubChem + KEGG + HMDB | 118 | 13.1% |
-| PubChem + KEGG only | 26 | 2.9% |
-| PubChem + HMDB only | 84 | 9.3% |
-| PubChem only | 638 | 70.7% |
+| PubChem + KEGG + HMDB | 125 | 13.9% |
+| PubChem + KEGG only | 20 | 2.2% |
+| PubChem + HMDB only | 89 | 9.9% |
+| PubChem only | 632 | 70.1% |
 | Unresolved | 36 | 4.0% |
 | **Total** | **902** | **100%** |
 | InChIKey | 826 | 91.6% |
