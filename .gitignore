@@ -2,5 +2,6 @@
 *.xlsx
 hmdb_metabolites.xml
 *.txt
-*.csvcoconut_complete.csv
+*.csv
+coconut_complete.csv
 coconut_organism_cache.json

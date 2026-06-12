@@ -34,6 +34,7 @@
 | 23_fill_inchikey_kegg_hmdb_from_pubchem.py | Fill InChIKey via PubChem CID, then extract KEGG/HMDB via ChEBI for new entries |
 | 24_extract_enzymes_brenda.py   | Extract EC numbers from BRENDA SOAP API via compound name lookup          |
 | 25_classify_origin_coconut.py  | Classify unverified compounds (endogenous/exogenous) via COCONUT organism (taxonomicRange) data, matched by InChIKey through local full-DB CSV join |
+| 26_reclassify_unverified_chebi.py | Re-classify remaining unverified compounds via ChEBI roles API (human metabolite → endogenous) |
 
 ---
 
@@ -221,3 +222,25 @@ Note: High unverified rate reflects the nature of the dataset (COCONUT-based nat
 | InChIKey (exact) | 108 |
 | InChIKey skeleton (14-char) | 83 |
 | CNP ID | 1 |
+
+#### Day 12 (260612)
+Step 26: ChEBI roles re-attempt
+- Targeted remaining 476 unverified compounds only
+- ChEBI ID already available (31) → roles query directly; InChIKey available → ChEBI ID → roles
+- Rule: `human metabolite` role → endogenous; other roles → exogenous
+
+| Reclassification | Count |
+|---|---|
+| → endogenous | 0 |
+| → exogenous | 36 |
+| Unverified (no ChEBI match / no roles) | 440 |
+
+#### Cumulative classification result
+
+| compound_origin | step24 | step25 | step26 |
+|---|---|---|-------|
+| endogenous | 140 | 143 | 143 |
+| exogenous | 94 | 283 | 319 |
+| unverified | 668 | 476 | 440 |
+
+- **Conclusion**: ChEBI, HMDB, COCONUT all exhausted. Remaining 440 unverified compounds have no classification evidence in current public DBs under perspective B (human metabolite DB standard).

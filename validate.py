@@ -316,23 +316,25 @@
 # df.to_excel(TARGET_FILE, index=False)
 # apply_format(TARGET_FILE)
 # print("compound_origin 컬럼명 변경 완료")
+"""
+이게 진짜
+"""
+# import pandas as pd
+# from format_excel import apply_format
 
-import pandas as pd
-from format_excel import apply_format
+# # ────────────────────────────────────────────────────────
+# # 2026-06-08: PubChem ID cross-validation with MetaboAnalyst
+# # ────────────────────────────────────────────────────────
 
-# ────────────────────────────────────────────────────────
-# 2026-06-08: PubChem ID cross-validation with MetaboAnalyst
-# ────────────────────────────────────────────────────────
+# # ────────────────────────────────────────────────────────
+# # 2026-06-09: filter_status → compound_origin 컬럼명 변경
+# # ────────────────────────────────────────────────────────
 
-# ────────────────────────────────────────────────────────
-# 2026-06-09: filter_status → compound_origin 컬럼명 변경
-# ────────────────────────────────────────────────────────
-
-# ────────────────────────────────────────────────────────
-# 2026-06-10: brenda_enzymes 추가 후 포맷 재적용
-# ────────────────────────────────────────────────────────
-apply_format("metabolites_step25.xlsx")
-print("포맷 적용 완료")
+# # ────────────────────────────────────────────────────────
+# # 2026-06-10: brenda_enzymes 추가 후 포맷 재적용
+# # ────────────────────────────────────────────────────────
+# apply_format("metabolites_step25.xlsx")
+# print("포맷 적용 완료")
 
 # import pandas as pd
 
@@ -363,3 +365,81 @@ print("포맷 적용 완료")
 # for combo, count in combos.items():
 #     if count > 0:
 #         print(f"{combo}: {count}개")
+
+##### HMDB 검증 #####
+# import pandas as pd
+# df = pd.read_excel('metabolites_step25.xlsx', sheet_name=0)
+# unv = df[df['compound_origin']=='unverified']
+# print('unverified 총:', len(unv))
+# print('HMDB 보유:', unv['HMDB'].notna().sum())
+# print('HMDB 없음:', unv['HMDB'].isna().sum())
+# print(unv[unv['HMDB'].notna()][['compound_name','HMDB','hmdb_origin']].head(5).to_string())
+### 검증 결과 하기 참고 ###
+"""
+unverified 총: 476
+HMDB 보유: 22
+HMDB 없음: 454
+                                                                        compound_name         HMDB hmdb_origin
+15                                                                            Creatol  HMDB0244988         NaN
+23   2(3H)-Furanone, 3-ethyldihydro-4-[(1-methyl-1H-imidazol-5-yl)methyl]-, (3S-cis)-  HMDB0243539         NaN
+104                        1-(2-Hydroxyethyl)-2-(hydroxymethyl)piperidine-3,4,5-triol  HMDB0243780         NaN
+171                                                       5-Hydroxy-1-methylhydantoin  HMDB0246800         NaN
+196                                                                 2,8-Quinolinediol  HMDB0240311         NaN
+"""
+
+##### HMDB 재조회 #####
+# import pandas as pd
+# import xml.etree.ElementTree as ET
+
+# df = pd.read_excel('metabolites_step25.xlsx', sheet_name=0)
+# unv = df[df['compound_origin']=='unverified']
+# hmdb_ids = set(unv[unv['HMDB'].notna()]['HMDB'].tolist())
+
+# ns = '{http://www.hmdb.ca}'
+# found = 0
+# for event, elem in ET.iterparse('hmdb_metabolites.xml', events=['end']):
+#     if elem.tag == f'{ns}metabolite':
+#         acc = elem.findtext(f'{ns}accession')
+#         if acc in hmdb_ids:
+#             origin = elem.findtext(f'{ns}origin') or elem.findtext(f'{ns}biospecimen_locations') or '없음'
+#             name = elem.findtext(f'{ns}name')
+#             print(f"{acc} | {name} | {origin[:60]}")
+#             found += 1
+#         elem.clear()
+#         if found == 22:
+#             break
+        
+### 조회 결과 하기 참고 ###
+"""
+HMDB0028739 | Asparaginyl-Proline | 없음
+HMDB0028744 | Asparaginyl-Valine | 없음
+HMDB0028765 | Aspartyl-Tyrosine | 없음
+HMDB0028783 | Cysteinyl-Proline | 없음
+HMDB0028914 | Isoleucyl-Phenylalanine | 없음
+HMDB0028934 | Leucyl-Lysine | 없음
+HMDB0028981 | Methionyl-Proline | 없음
+HMDB0240311 | 2,8-Quinolinediol | 없음
+HMDB0242128 | 2-Aminoheptanoic acid | 없음
+HMDB0243539 | (+)-Isopilocarpine | 없음
+HMDB0243678 | (R)-Equol | 없음
+HMDB0243780 | 1-(2-Hydroxyethyl)-2-(hydroxymethyl)piperidine-3,4,5-triol | 없음
+HMDB0244988 | 5-Hydroxy-2-imino-1-methylimidazolidin-4-one | 없음
+HMDB0246205 | [(2R,3R,4S,5S)-3,4,5,6-Tetrahydroxyoxan-2-yl]methyl dihydrogen phosphate | 없음
+HMDB0246800 | 5-Hydroxy-1-methylhydantoin | 없음
+HMDB0252569 | Gabexate | 없음
+HMDB0252604 | Gamabufotalin | 없음
+HMDB0253104 | Heptaminol | 없음
+HMDB0254052 | levomedetomidine | 없음
+HMDB0257557 | (2R,5S)-2-(6-Aminopurin-9-yl)-5-(methylsulfanylmethyl)oxolane-3,4-diol | 없음
+HMDB0257923 | 2-[(3alpha,7alpha,12alpha-Trihydroxy-24-oxocholane-24-yl)amino]ethanesulfonic acid | 없음
+HMDB0258242 | Ser-Leu | 없음
+"""
+
+##### ChEBI ID, InChIKey 보유 현황 체크 #####
+import pandas as pd
+df = pd.read_excel('metabolites_step25.xlsx', sheet_name=0)
+unv = df[df['compound_origin']=='unverified']
+print('unverified 총:', len(unv))
+print('ChEBI 보유:', unv['ChEBI'].notna().sum())
+print('InChIKey 보유:', unv['InChIKey'].notna().sum())
+print('ChEBI도 InChIKey도 없음:', (unv['ChEBI'].isna() & unv['InChIKey'].isna()).sum())

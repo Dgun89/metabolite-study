@@ -177,24 +177,6 @@ def apply_format(filepath: str):
         ("Classification", "Endogenous",      (df['compound_origin']=='endogenous').sum(), f"{(df['compound_origin']=='endogenous').sum()/total*100:.1f}%"),
         ("Classification", "Exogenous",       (df['compound_origin']=='exogenous').sum(),  f"{(df['compound_origin']=='exogenous').sum()/total*100:.1f}%"),
         ("Classification", "Unverified",      (df['compound_origin']=='unverified').sum(), f"{(df['compound_origin']=='unverified').sum()/total*100:.1f}%"),
-        # 단독
-        ("Enzyme Info (single source)", "KEGG only",     int((has_kegg  & ~has_hmdb & ~has_reactome & ~has_brenda).sum()), f"{(has_kegg & ~has_hmdb & ~has_reactome & ~has_brenda).sum()/total*100:.1f}%"),
-        ("Enzyme Info (single source)", "HMDB only",     int((~has_kegg & has_hmdb  & ~has_reactome & ~has_brenda).sum()), f"{(~has_kegg & has_hmdb & ~has_reactome & ~has_brenda).sum()/total*100:.1f}%"),
-        ("Enzyme Info (single source)", "Reactome only", int((~has_kegg & ~has_hmdb & has_reactome  & ~has_brenda).sum()), f"{(~has_kegg & ~has_hmdb & has_reactome & ~has_brenda).sum()/total*100:.1f}%"),
-        ("Enzyme Info (single source)", "BRENDA only",   int((~has_kegg & ~has_hmdb & ~has_reactome & has_brenda).sum()),  f"{(~has_kegg & ~has_hmdb & ~has_reactome & has_brenda).sum()/total*100:.1f}%"),
-        # 중복
-        ("Enzyme Info (overlap)", "KEGG + HMDB",              int((has_kegg & has_hmdb  & ~has_reactome & ~has_brenda).sum()), f"{(has_kegg & has_hmdb & ~has_reactome & ~has_brenda).sum()/total*100:.1f}%"),
-        ("Enzyme Info (overlap)", "KEGG + Reactome",          int((has_kegg & ~has_hmdb & has_reactome  & ~has_brenda).sum()), f"{(has_kegg & ~has_hmdb & has_reactome & ~has_brenda).sum()/total*100:.1f}%"),
-        ("Enzyme Info (overlap)", "KEGG + BRENDA",            int((has_kegg & ~has_hmdb & ~has_reactome & has_brenda).sum()),  f"{(has_kegg & ~has_hmdb & ~has_reactome & has_brenda).sum()/total*100:.1f}%"),
-        ("Enzyme Info (overlap)", "HMDB + Reactome",          int((~has_kegg & has_hmdb & has_reactome  & ~has_brenda).sum()), f"{(~has_kegg & has_hmdb & has_reactome & ~has_brenda).sum()/total*100:.1f}%"),
-        ("Enzyme Info (overlap)", "HMDB + BRENDA",            int((~has_kegg & has_hmdb & ~has_reactome & has_brenda).sum()),  f"{(~has_kegg & has_hmdb & ~has_reactome & has_brenda).sum()/total*100:.1f}%"),
-        ("Enzyme Info (overlap)", "Reactome + BRENDA",        int((~has_kegg & ~has_hmdb & has_reactome & has_brenda).sum()),  f"{(~has_kegg & ~has_hmdb & has_reactome & has_brenda).sum()/total*100:.1f}%"),
-        ("Enzyme Info (overlap)", "KEGG + HMDB + BRENDA",     int((has_kegg & has_hmdb & ~has_reactome & has_brenda).sum()),   f"{(has_kegg & has_hmdb & ~has_reactome & has_brenda).sum()/total*100:.1f}%"),
-        ("Enzyme Info (overlap)", "KEGG + Reactome + BRENDA", int((has_kegg & ~has_hmdb & has_reactome & has_brenda).sum()),   f"{(has_kegg & ~has_hmdb & has_reactome & has_brenda).sum()/total*100:.1f}%"),
-        ("Enzyme Info (overlap)", "HMDB + Reactome + BRENDA", int((~has_kegg & has_hmdb & has_reactome & has_brenda).sum()),   f"{(~has_kegg & has_hmdb & has_reactome & has_brenda).sum()/total*100:.1f}%"),
-        ("Enzyme Info (overlap)", "All 4 sources",            int((has_kegg & has_hmdb & has_reactome & has_brenda).sum()),    f"{(has_kegg & has_hmdb & has_reactome & has_brenda).sum()/total*100:.1f}%"),
-        # 합계
-        ("Enzyme Info", "Total (unique)", int((has_kegg | has_hmdb | has_reactome | has_brenda).sum()), f"{(has_kegg | has_hmdb | has_reactome | has_brenda).sum()/total*100:.1f}%"),
     ]
 
     if 'origin_evidence' in df.columns:
@@ -205,6 +187,27 @@ def apply_format(filepath: str):
             ("Origin Evidence", "Reclassified → exogenous", cnt('non-human'), f"{cnt('non-human')/total*100:.1f}%"),
             ("Origin Evidence", "Unverified: no organism data", cnt('no organism'), f"{cnt('no organism')/total*100:.1f}%"),
             ("Origin Evidence", "Unverified: not in COCONUT", cnt('not in release'), f"{cnt('not in release')/total*100:.1f}%"),
+        ]
+
+    rows += [
+            # 단독
+            ("Enzyme Info (single source)", "KEGG only",     int((has_kegg  & ~has_hmdb & ~has_reactome & ~has_brenda).sum()), f"{(has_kegg & ~has_hmdb & ~has_reactome & ~has_brenda).sum()/total*100:.1f}%"),
+            ("Enzyme Info (single source)", "HMDB only",     int((~has_kegg & has_hmdb  & ~has_reactome & ~has_brenda).sum()), f"{(~has_kegg & has_hmdb & ~has_reactome & ~has_brenda).sum()/total*100:.1f}%"),
+            ("Enzyme Info (single source)", "Reactome only", int((~has_kegg & ~has_hmdb & has_reactome  & ~has_brenda).sum()), f"{(~has_kegg & ~has_hmdb & has_reactome & ~has_brenda).sum()/total*100:.1f}%"),
+            ("Enzyme Info (single source)", "BRENDA only",   int((~has_kegg & ~has_hmdb & ~has_reactome & has_brenda).sum()),  f"{(~has_kegg & ~has_hmdb & ~has_reactome & has_brenda).sum()/total*100:.1f}%"),
+            # 중복
+            ("Enzyme Info (overlap)", "KEGG + HMDB",              int((has_kegg & has_hmdb  & ~has_reactome & ~has_brenda).sum()), f"{(has_kegg & has_hmdb & ~has_reactome & ~has_brenda).sum()/total*100:.1f}%"),
+            ("Enzyme Info (overlap)", "KEGG + Reactome",          int((has_kegg & ~has_hmdb & has_reactome  & ~has_brenda).sum()), f"{(has_kegg & ~has_hmdb & has_reactome & ~has_brenda).sum()/total*100:.1f}%"),
+            ("Enzyme Info (overlap)", "KEGG + BRENDA",            int((has_kegg & ~has_hmdb & ~has_reactome & has_brenda).sum()),  f"{(has_kegg & ~has_hmdb & ~has_reactome & has_brenda).sum()/total*100:.1f}%"),
+            ("Enzyme Info (overlap)", "HMDB + Reactome",          int((~has_kegg & has_hmdb & has_reactome  & ~has_brenda).sum()), f"{(~has_kegg & has_hmdb & has_reactome & ~has_brenda).sum()/total*100:.1f}%"),
+            ("Enzyme Info (overlap)", "HMDB + BRENDA",            int((~has_kegg & has_hmdb & ~has_reactome & has_brenda).sum()),  f"{(~has_kegg & has_hmdb & ~has_reactome & has_brenda).sum()/total*100:.1f}%"),
+            ("Enzyme Info (overlap)", "Reactome + BRENDA",        int((~has_kegg & ~has_hmdb & has_reactome & has_brenda).sum()),  f"{(~has_kegg & ~has_hmdb & has_reactome & has_brenda).sum()/total*100:.1f}%"),
+            ("Enzyme Info (overlap)", "KEGG + HMDB + BRENDA",     int((has_kegg & has_hmdb & ~has_reactome & has_brenda).sum()),   f"{(has_kegg & has_hmdb & ~has_reactome & has_brenda).sum()/total*100:.1f}%"),
+            ("Enzyme Info (overlap)", "KEGG + Reactome + BRENDA", int((has_kegg & ~has_hmdb & has_reactome & has_brenda).sum()),   f"{(has_kegg & ~has_hmdb & has_reactome & has_brenda).sum()/total*100:.1f}%"),
+            ("Enzyme Info (overlap)", "HMDB + Reactome + BRENDA", int((~has_kegg & has_hmdb & has_reactome & has_brenda).sum()),   f"{(~has_kegg & has_hmdb & has_reactome & has_brenda).sum()/total*100:.1f}%"),
+            ("Enzyme Info (overlap)", "All 4 sources",            int((has_kegg & has_hmdb & has_reactome & has_brenda).sum()),    f"{(has_kegg & has_hmdb & has_reactome & has_brenda).sum()/total*100:.1f}%"),
+            # 합계
+            ("Enzyme Info", "Total (unique)", int((has_kegg | has_hmdb | has_reactome | has_brenda).sum()), f"{(has_kegg | has_hmdb | has_reactome | has_brenda).sum()/total*100:.1f}%"),
         ]
 
     for i, (category, item, count, coverage) in enumerate(rows, 5):
