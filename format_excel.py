@@ -14,60 +14,67 @@ GROUPS = {
         "description": "Cross-reference IDs from external databases"
     },
     "Classification": {
-        "columns": ["compound_origin", "hmdb_origin"],
+        "columns": ["classification"],
         "color": "FFEB9C",
-        "description": "Endogenous/exogenous classification"
+        "description": "Final classification: endogenous / exogenous / unverified"
     },
-    "Origin Evidence": {
-        "columns": ["coconut_organisms", "coconut_match_key", "origin_evidence"],
+    "Classification Sources": {
+        "columns": ["hmdb_origin", "coconut_organisms", "chebi_roles"],
+        "color": "FFD9B3",
+        "description": "Source data used to determine classification"
+    },
+    "Classification Metadata": {
+        "columns": ["coconut_match_key", "classification_basis"],
         "color": "E4DFEC",
-        "description": "Provenance / audit trail behind compound_origin"
+        "description": "Match method and reasoning behind classification"
     },
     "Enzyme Information": {
         "columns": ["kegg_enzymes", "hmdb_enzymes", "reactome_catalysts", "brenda_enzymes"],
-        "color": "FCE4D6",
+        "color": "DAEEF3",
         "description": "Enzyme data from multiple databases"
     }
 }
 
 COL_SOURCE = {
-        "Database ID"        : "COCONUT",
-    "compound_name"      : "COCONUT",
-    "InChIKey"           : "PubChem",
-    "SMILES"             : "PubChem",
-    "PubChem"            : "PubChem",
-    "KEGG"               : "KEGG",
-    "HMDB"               : "HMDB",
-    "ChEBI"              : "ChEBI",
-    "compound_origin"    : "ChEBI + HMDB",
-    "hmdb_origin"        : "HMDB",
-    "kegg_enzymes"       : "KEGG",
-    "hmdb_enzymes"       : "HMDB",
-    "reactome_catalysts" : "Reactome",
-    "brenda_enzymes"     : "BRENDA",
-    "coconut_organisms"  : "COCONUT",
-    "coconut_match_key"  : "COCONUT",
-    "origin_evidence"    : "COCONUT", 
+    "Database ID"          : "COCONUT",
+    "compound_name"        : "COCONUT",
+    "InChIKey"             : "PubChem",
+    "SMILES"               : "PubChem",
+    "PubChem"              : "PubChem",
+    "KEGG"                 : "KEGG",
+    "HMDB"                 : "HMDB",
+    "ChEBI"                : "ChEBI",
+    "classification"       : "ChEBI + HMDB + COCONUT",
+    "hmdb_origin"          : "HMDB",
+    "coconut_organisms"    : "COCONUT",
+    "chebi_roles"          : "ChEBI",
+    "coconut_match_key"    : "COCONUT",
+    "classification_basis" : "ChEBI + COCONUT",
+    "kegg_enzymes"         : "KEGG",
+    "hmdb_enzymes"         : "HMDB",
+    "reactome_catalysts"   : "Reactome",
+    "brenda_enzymes"       : "BRENDA", 
 }
 
 COL_DESC = {
-    "Database ID"        : "COCONUT compound ID",
-    "compound_name"      : "Compound name",
-    "InChIKey"           : "Chemical structure key (27-char)",
-    "SMILES"             : "Chemical structure in text format",
-    "PubChem"            : "PubChem Compound ID (CID)",
-    "KEGG"               : "KEGG Compound ID",
-    "HMDB"               : "Human Metabolome Database ID",
-    "ChEBI"              : "Chemical Entities of Biological Interest ID",
-    "compound_origin"    : "Final classification: endogenous / exogenous / unverified",
-    "hmdb_origin"        : "HMDB source field (Endogenous / Food / Drug etc.)",
-    "coconut_organisms"  : "Producing organisms from COCONUT used to infer origin",
-    "coconut_match_key"  : "COCONUT match method: inchikey / inchikey_skeleton / cnp_id",
-    "origin_evidence"    : "Reason behind compound_origin (e. g. COCONUT: Homo sapiens / non-human / no organism data / not in release)",
-    "kegg_enzymes"       : "EC numbers from KEGG (semicolon-separated)",
-    "hmdb_enzymes"       : "Enzyme gene names from HMDB (semicolon-separated)",
-    "reactome_catalysts" : "Catalyst activity names from Reactome",
-    "brenda_enzymes"     : "EC numbers from BRENDA (semicolon-separated; source: BRENDA Enzyme Database)",
+    "Database ID"          : "COCONUT compound ID",
+    "compound_name"        : "Compound name",
+    "InChIKey"             : "Chemical structure key (27-char)",
+    "SMILES"               : "Chemical structure in text format",
+    "PubChem"              : "PubChem Compound ID (CID)",
+    "KEGG"                 : "KEGG Compound ID",
+    "HMDB"                 : "Human Metabolome Database ID",
+    "ChEBI"                : "Chemical Entities of Biological Interest ID",
+    "classification"       : "Final classification: endogenous / exogenous / unverified",  # compound_origin 변경
+    "hmdb_origin"          : "HMDB origin field (Endogenous / Food / Drug etc.)",
+    "coconut_organisms"    : "Organisms associated with compound in COCONUT (used to infer classification)",
+    "chebi_roles"          : "Role classification from ChEBI (semicolon-separated)",        # 신규
+    "coconut_match_key"    : "COCONUT match method: inchikey / inchikey_skeleton / cnp_id",
+    "classification_basis" : "Reason behind classification (e.g. COCONUT: Homo sapiens / ChEBI: human metabolite)",  # origin_evidence 변경
+    "kegg_enzymes"         : "EC numbers from KEGG (semicolon-separated)",
+    "hmdb_enzymes"         : "Enzyme gene names from HMDB (semicolon-separated)",
+    "reactome_catalysts"   : "Catalyst activity names from Reactome",
+    "brenda_enzymes"       : "EC numbers from BRENDA (semicolon-separated; source: BRENDA Enzyme Database)",
 }
 
 def apply_format(filepath: str):
@@ -174,9 +181,9 @@ def apply_format(filepath: str):
         ("External DB IDs","KEGG",            df['KEGG'].notna().sum(),     f"{df['KEGG'].notna().sum()/total*100:.1f}%"),
         ("External DB IDs","HMDB",            df['HMDB'].notna().sum(),     f"{df['HMDB'].notna().sum()/total*100:.1f}%"),
         ("External DB IDs","ChEBI",           df['ChEBI'].notna().sum(),    f"{df['ChEBI'].notna().sum()/total*100:.1f}%"),
-        ("Classification", "Endogenous",      (df['compound_origin']=='endogenous').sum(), f"{(df['compound_origin']=='endogenous').sum()/total*100:.1f}%"),
-        ("Classification", "Exogenous",       (df['compound_origin']=='exogenous').sum(),  f"{(df['compound_origin']=='exogenous').sum()/total*100:.1f}%"),
-        ("Classification", "Unverified",      (df['compound_origin']=='unverified').sum(), f"{(df['compound_origin']=='unverified').sum()/total*100:.1f}%"),
+        ("Classification", "Endogenous",      (df['classification']=='endogenous').sum(), f"{(df['classification']=='endogenous').sum()/total*100:.1f}%"),
+        ("Classification", "Exogenous",       (df['classification']=='exogenous').sum(),  f"{(df['classification']=='exogenous').sum()/total*100:.1f}%"),
+        ("Classification", "Unverified",      (df['classification']=='unverified').sum(), f"{(df['classification']=='unverified').sum()/total*100:.1f}%"),
     ]
 
     if 'origin_evidence' in df.columns:

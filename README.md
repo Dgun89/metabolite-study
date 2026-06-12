@@ -35,6 +35,8 @@
 | 24_extract_enzymes_brenda.py   | Extract EC numbers from BRENDA SOAP API via compound name lookup          |
 | 25_classify_origin_coconut.py  | Classify unverified compounds (endogenous/exogenous) via COCONUT organism (taxonomicRange) data, matched by InChIKey through local full-DB CSV join |
 | 26_reclassify_unverified_chebi.py | Re-classify remaining unverified compounds via ChEBI roles API (human metabolite → endogenous) |
+| 27_add_chebi_roles.py | Add chebi_roles column via ChEBI API; rename compound_origin → classification, origin_evidence → classification_basis; restructure column groups |
+| 28_reclassify_via_kegg_hmdb_chebi.py | Attempt ChEBI ID lookup via KEGG API and UniChem (HMDB→ChEBI) for remaining 11 unverified compounds (0 reclassified) |
 
 ---
 
@@ -244,3 +246,27 @@ Step 26: ChEBI roles re-attempt
 | unverified | 668 | 476 | 440 |
 
 - **Conclusion**: ChEBI, HMDB, COCONUT all exhausted. Remaining 440 unverified compounds have no classification evidence in current public DBs under perspective B (human metabolite DB standard).
+
+#### Step 27: Add chebi_roles column + column restructure
+- Added `chebi_roles` column (ChEBI roles API, 326건 조회 → 216건 획득)
+- Renamed: `compound_origin` → `classification`, `origin_evidence` → `classification_basis`
+- Restructured column groups:
+  - Classification: `classification`
+  - Classification Sources: `hmdb_origin`, `coconut_organisms`, `chebi_roles`
+  - Classification Metadata: `coconut_match_key`, `classification_basis`
+
+#### Step 28: ChEBI ID lookup via KEGG / UniChem
+- Targeted 11 unverified compounds with KEGG or HMDB ID but no ChEBI ID
+- KEGG → KEGG REST API → ChEBI ID (8건 시도)
+- HMDB → UniChem API → ChEBI ID (5건 시도)
+- Result: 0 / 11 reclassified → all 11 compounds not registered in ChEBI
+
+#### Final classification result
+
+| compound_origin | step24 | step25 | step26 | step27/28 |
+|---|---|---|---|---|
+| endogenous | 140 | 143 | 143 | 143 |
+| exogenous | 94 | 283 | 319 | 319 |
+| unverified | 668 | 476 | 440 | 440 |
+
+**Conclusion**: ChEBI, HMDB, COCONUT, KEGG→ChEBI, HMDB→UniChem→ChEBI 모든 소스 소진. 440건은 현재 공개 DB 기준 분류 근거 없음.

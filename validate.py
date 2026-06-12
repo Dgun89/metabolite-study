@@ -436,10 +436,48 @@ HMDB0258242 | Ser-Leu | 없음
 """
 
 ##### ChEBI ID, InChIKey 보유 현황 체크 #####
+# import pandas as pd
+# df = pd.read_excel('metabolites_step25.xlsx', sheet_name=0)
+# unv = df[df['compound_origin']=='unverified']
+# print('unverified 총:', len(unv))
+# print('ChEBI 보유:', unv['ChEBI'].notna().sum())
+# print('InChIKey 보유:', unv['InChIKey'].notna().sum())
+# print('ChEBI도 InChIKey도 없음:', (unv['ChEBI'].isna() & unv['InChIKey'].isna()).sum())
+
+##### excel column 재조정 #####
+# import pandas as pd
+# df = pd.read_excel('metabolites_step26.xlsx', sheet_name=0)
+
+# # ChEBI ID 보유 현황
+# print('전체 ChEBI 보유:', df['ChEBI'].notna().sum())
+
+# # classification별 ChEBI 보유
+# for origin in ['endogenous', 'exogenous', 'unverified']:
+#     sub = df[df['compound_origin']==origin]
+#     print(f"  {origin}: ChEBI {sub['ChEBI'].notna().sum()}/{len(sub)}")
+
+##### #####
+# from format_excel import apply_format
+# apply_format("metabolites_step27.xlsx")
+
+##### #####
+# import pandas as pd
+# df = pd.read_excel('metabolites_step27.xlsx', sheet_name=0)
+# unv = df[df['classification']=='unverified']
+# not_found = unv[unv['classification_basis']=='ChEBI: not found']
+# print(f"ChEBI not found: {len(not_found)}")
+# print(f"  KEGG 있음: {not_found['KEGG'].notna().sum()}")
+# print(f"  HMDB 있음: {not_found['HMDB'].notna().sum()}")
+# print(f"  둘 다 없음: {(not_found['KEGG'].isna() & not_found['HMDB'].isna()).sum()}")
+
+##### #####
 import pandas as pd
-df = pd.read_excel('metabolites_step25.xlsx', sheet_name=0)
-unv = df[df['compound_origin']=='unverified']
-print('unverified 총:', len(unv))
-print('ChEBI 보유:', unv['ChEBI'].notna().sum())
-print('InChIKey 보유:', unv['InChIKey'].notna().sum())
-print('ChEBI도 InChIKey도 없음:', (unv['ChEBI'].isna() & unv['InChIKey'].isna()).sum())
+df = pd.read_excel('metabolites_step27.xlsx', sheet_name=0)
+unv = df[df['classification']=='unverified']
+not_found = unv[unv['classification_basis']=='ChEBI: not found']
+
+print("KEGG 있는 것:")
+print(not_found[not_found['KEGG'].notna()][['compound_name','KEGG','HMDB']].to_string())
+print()
+print("HMDB 있는 것:")
+print(not_found[not_found['HMDB'].notna()][['compound_name','KEGG','HMDB']].to_string())
