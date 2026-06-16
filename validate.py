@@ -471,13 +471,109 @@ HMDB0258242 | Ser-Leu | 없음
 # print(f"  둘 다 없음: {(not_found['KEGG'].isna() & not_found['HMDB'].isna()).sum()}")
 
 ##### #####
-import pandas as pd
-df = pd.read_excel('metabolites_step27.xlsx', sheet_name=0)
-unv = df[df['classification']=='unverified']
-not_found = unv[unv['classification_basis']=='ChEBI: not found']
+# import pandas as pd
+# df = pd.read_excel('metabolites_step27.xlsx', sheet_name=0)
+# unv = df[df['classification']=='unverified']
+# not_found = unv[unv['classification_basis']=='ChEBI: not found']
 
-print("KEGG 있는 것:")
-print(not_found[not_found['KEGG'].notna()][['compound_name','KEGG','HMDB']].to_string())
-print()
-print("HMDB 있는 것:")
-print(not_found[not_found['HMDB'].notna()][['compound_name','KEGG','HMDB']].to_string())
+# print("KEGG 있는 것:")
+# print(not_found[not_found['KEGG'].notna()][['compound_name','KEGG','HMDB']].to_string())
+# print()
+# print("HMDB 있는 것:")
+# print(not_found[not_found['HMDB'].notna()][['compound_name','KEGG','HMDB']].to_string())
+
+
+# ###############################################################
+# "VISUALIZAION"
+# ################################################################
+# import matplotlib
+# matplotlib.use('Agg')
+# import matplotlib.pyplot as plt
+# import matplotlib.patches as mpatches
+
+# fig, ax = plt.subplots(figsize=(13, 2.8)) # 10->13
+# ax.axis('off')
+
+# columns = ['Classification', '1st Report\n(step23)', '2nd Report\n(step28)', 'Change', 'Source']
+# rows = [
+#     ['Endogenous', '140', '143', '+3', 'COCONUT 2.0 (Homo sapiens)'],
+#     ['Exogenous',  '94',  '319', '+225', 'COCONUT 2.0 (+189)\nChEBI roles retry (+36)'],
+#     ['Unverified', '668', '440', '−228', 'Same as above'],
+# ]
+
+# table = ax.table(
+#     cellText=rows,
+#     colLabels=columns,
+#     loc='center',
+#     cellLoc='center',
+#     colWidths=[0.15, 0.12, 0.12, 0.10, 0.35], # Source 컬럼 넓게
+# )
+# table.auto_set_font_size(False)
+# table.set_fontsize(11)
+# table.scale(1, 2.2)
+
+# # 헤더 색
+# for j in range(len(columns)):
+#     table[0, j].set_facecolor('#D9D9D9')
+#     table[0, j].set_text_props(fontweight='bold')
+
+# # 행별 색
+# row_colors = ['#EAF3DE', '#E6F1FB', '#F1EFE8']  # 초록, 파랑, 회색
+# for i, color in enumerate(row_colors):
+#     table[i+1, 0].set_facecolor(color)
+#     table[i+1, 0].set_text_props(fontweight='bold')
+
+# # 변화 컬럼 색
+# change_colors = ['#3B6D11', '#185FA5', '#5F5E5A']
+# for i, color in enumerate(change_colors):
+#     table[i+1, 3].set_text_props(color=color, fontweight='bold')
+
+# plt.tight_layout()
+# plt.savefig('classification_comparison.png', dpi=150, bbox_inches='tight')
+# print("Saved: classification_comparison.png")
+
+##### #####
+# import pandas as pd
+# df = pd.read_excel('metabolites_step28.xlsx', sheet_name=0)
+# unv = df[df['classification']=='unverified']
+
+# # COCONUT 기준 세분화
+# in_coconut_no_org = unv[unv['coconut_organisms'].isna() & unv['coconut_match_key'].notna()]
+# not_in_coconut    = unv[unv['coconut_match_key'].isna()]
+
+# print(f"COCONUT 존재하나 생물종 주석 없음: {len(in_coconut_no_org)}")
+# print(f"COCONUT 미존재:                  {len(not_in_coconut)}")
+# print(f"합계:                            {len(unv)}")
+
+##### #####
+# import pandas as pd
+# df = pd.read_excel('metabolites_step28.xlsx', sheet_name=0)
+# unv = df[df['classification']=='unverified']
+
+# print("coconut_match_key 분포:")
+# print(unv['coconut_match_key'].value_counts(dropna=False))
+# print()
+# print("coconut_organisms 분포:")
+# print(unv['coconut_organisms'].notna().sum(), "건 보유")
+
+##### #####
+# import pandas as pd
+# s25 = pd.read_excel('metabolites_step25.xlsx', sheet_name=0)
+# s28 = pd.read_excel('metabolites_step28.xlsx', sheet_name=0)
+
+# unv25 = s25[s25['compound_origin']=='unverified']
+# unv28 = s28[s28['classification']=='unverified']
+
+# print("=== step25 unverified ===")
+# print("coconut_match_key:", unv25['coconut_match_key'].value_counts(dropna=False))
+# print("coconut_organisms:", unv25['coconut_organisms'].notna().sum(), "건")
+
+# print("\n=== step28 unverified ===")
+# print("coconut_match_key:", unv28['coconut_match_key'].value_counts(dropna=False))
+# print("coconut_organisms:", unv28['coconut_organisms'].notna().sum(), "건")
+
+##### #####
+import pandas as pd
+s25 = pd.read_excel('metabolites_step25.xlsx', sheet_name=0)
+unv25 = s25[s25['compound_origin']=='unverified']
+print(unv25['origin_evidence'].value_counts(dropna=False))

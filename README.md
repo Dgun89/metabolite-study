@@ -37,6 +37,7 @@
 | 26_reclassify_unverified_chebi.py | Re-classify remaining unverified compounds via ChEBI roles API (human metabolite → endogenous) |
 | 27_add_chebi_roles.py | Add chebi_roles column via ChEBI API; rename compound_origin → classification, origin_evidence → classification_basis; restructure column groups |
 | 28_reclassify_via_kegg_hmdb_chebi.py | Attempt ChEBI ID lookup via KEGG API and UniChem (HMDB→ChEBI) for remaining 11 unverified compounds (0 reclassified) |
+| 29_restore_coconut_basis.py | Restore COCONUT-based classification_basis for unverified compounds overwritten during step26-28 ChEBI re-queries |
 
 ---
 
@@ -270,3 +271,9 @@ Step 26: ChEBI roles re-attempt
 | unverified | 668 | 476 | 440 | 440 |
 
 **Conclusion**: ChEBI, HMDB, COCONUT, KEGG→ChEBI, HMDB→UniChem→ChEBI 모든 소스 소진. 440건은 현재 공개 DB 기준 분류 근거 없음.
+
+#### Step 29: Restore COCONUT classification_basis
+- classification_basis for unverified compounds had been overwritten by ChEBI results in step26-28
+- Restored from step25 origin_evidence via Database ID mapping
+- Result: COCONUT: no organism data (410) / COCONUT: not in release (30)
+- Note: 36 fewer than step25 (422+54=476) because those were reclassified to exogenous by ChEBI in step26
