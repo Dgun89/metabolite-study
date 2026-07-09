@@ -6,3 +6,7 @@ hmdb_metabolites.xml
 *.csv
 coconut_complete.csv
 coconut_organism_cache.json
+
+# python 캐시
+__pycache__/
+*.pyc
