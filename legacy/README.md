@@ -38,6 +38,7 @@
 | 27_add_chebi_roles.py | Add chebi_roles column via ChEBI API; rename compound_origin → classification, origin_evidence → classification_basis; restructure column groups |
 | 28_reclassify_via_kegg_hmdb_chebi.py | Attempt ChEBI ID lookup via KEGG API and UniChem (HMDB→ChEBI) for remaining 11 unverified compounds (0 reclassified) |
 | 29_restore_coconut_basis.py | Restore COCONUT-based classification_basis for unverified compounds overwritten during step26-28 ChEBI re-queries |
+| 30_recover_inchikey_and_reclassify.py | Recover missing InChIKeys via COCONUT/RDKit and reclassify |
 
 ---
 
@@ -277,3 +278,6 @@ Step 26: ChEBI roles re-attempt
 - Restored from step25 origin_evidence via Database ID mapping
 - Result: COCONUT: no organism data (410) / COCONUT: not in release (30)
 - Note: 36 fewer than step25 (422+54=476) because those were reclassified to exogenous by ChEBI in step26
+
+#### Step 30: Recover InChIKey and reclassify
+- Recover missing InChIKeys via COCONUT/RDKit and reclassify

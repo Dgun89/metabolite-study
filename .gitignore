@@ -1,4 +1,5 @@
 .env
+*.html
 *.xlsx
 hmdb_metabolites.xml
 *.txt
