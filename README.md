@@ -79,16 +79,11 @@ Each species' result: `data/{species}/final/{species}_final.xlsx`.
   - classification agreement: human 15/15 (100%), mouse 41/44 (93.2%)
   - HMDB & ChEBI identifiers 100% match; BRENDA & Reactome enzymes 100% match
   - the 3 mouse mismatches are COCONUT version differences / rule-priority differences (for Toluene, legacy is more robust)
-  - Conclusion: legacy step29 reliability verified — see `final/comparison_report.md`
+  - Conclusion: legacy step29 reliability verified
 
 ### Legacy
 
 `legacy/` is the COCONUT-based 902-compound DB pipeline (step1–29). Final classification: endogenous 143, exogenous 319, unverified 440. See `legacy/README.md` for details.
-
-### Notes
-
-- `RESEARCHNOTE.md` — research decisions and rationale
-- `STUDYNOTE.md` — code mechanics
 
 ---
 
@@ -159,13 +154,8 @@ metabolite-study/
   - **분류 일치 사람 15/15(100%), 쥐 41/44(93.2%)**
   - HMDB·ChEBI identifier 100% 일치, BRENDA·Reactome 효소 100% 일치
   - 쥐 불일치 3건은 COCONUT 버전차/규칙 우선순위차(Toluene은 legacy가 더 견고)
-  - **결론: legacy step29 신뢰성 검증됨** — final/comparison_report.md 참조
+  - **결론: legacy step29 신뢰성 검증됨**
 
 ### 기존 작업 (legacy)
 
 legacy/는 COCONUT 기반 902 화합물 DB 구축 파이프라인(step1~29). 최종 분류: endogenous 143, exogenous 319, unverified 440. 상세는 legacy/README.md 참고.
-
-### 노트
-
-- RESEARCHNOTE.md — 연구 결정과 근거
-- STUDYNOTE.md — 코드 메커니즘
