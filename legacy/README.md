@@ -38,7 +38,7 @@
 | 27_add_chebi_roles.py | Add chebi_roles column via ChEBI API; rename compound_origin → classification, origin_evidence → classification_basis; restructure column groups |
 | 28_reclassify_via_kegg_hmdb_chebi.py | Attempt ChEBI ID lookup via KEGG API and UniChem (HMDB→ChEBI) for remaining 11 unverified compounds (0 reclassified) |
 | 29_restore_coconut_basis.py | Restore COCONUT-based classification_basis for unverified compounds overwritten during step26-28 ChEBI re-queries |
-| 30_recover_inchikey_and_reclassify.py | Recover missing InChIKeys via COCONUT/RDKit and reclassify |
+| 30_recover_inchikey_and_reclassify.py | Recover missing InChIKeys (36 rows) via local COCONUT canonical_smiles + RDKit for 27 CNP compounds (866→893); reclassify 2 unverified→exogenous using COCONUT organism data (440→438) |
 
 ---
 
@@ -279,5 +279,10 @@ Step 26: ChEBI roles re-attempt
 - Result: COCONUT: no organism data (410) / COCONUT: not in release (30)
 - Note: 36 fewer than step25 (422+54=476) because those were reclassified to exogenous by ChEBI in step26
 
-#### Step 30: Recover InChIKey and reclassify
-- Recover missing InChIKeys via COCONUT/RDKit and reclassify
+#### Step 30: Recover missing InChIKeys + reclassify (260710)
+- 36 rows had no InChIKey (SMILES/PubChem/KEGG/HMDB/ChEBI all empty); 27 CNP + 9 PEP
+- Recovered SMILES for all 27 CNP from local COCONUT (canonical_smiles), computed InChIKey via RDKit MolToInchiKey → InChIKey coverage 866 → 893
+- ChEBI 0/27, HMDB 0/27: these compounds are not registered in public metabolite DBs (mostly complex/synthetic IUPAC-named structures)
+- Reclassified 2 unverified → exogenous using COCONUT organism data (non-human source): unverified 440 → 438, exogenous 319 → 321
+- Remaining 24 stay unverified (no signal in any DB); 9 PEP rows not in COCONUT, InChIKey unrecoverable via this route
+- Output: etc/metabolites_step30.xlsx (Data/Legend/Summary, 902 rows × 18 cols)
