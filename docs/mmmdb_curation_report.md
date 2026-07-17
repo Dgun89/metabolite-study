@@ -116,11 +116,13 @@ DarkMet 최신 최종 파일(`metabolites_step30.xlsx`, 902행)과 InChIKey로 �
 | 파일 | 설명 |
 |---|---|
 | `mmmdb_reference.parquet` | MMMDB 로컬 참조 테이블 (296 대사체, 식별자 해석) |
-| `mouse_final_curated.xlsx` | MMMDB + MSI 컬럼 추가 최종 파일 (3-sheet: Sheet1/Legend/Summary, 878행 × 28컬럼) |
+| `mouse_final_curated.xlsx` | MMMDB + MSI 컬럼 추가 최종 파일 (3-sheet: Sheet1/Legend/Summary, 878행 × 27컬럼; 세 시트 헤더·색상 톤 통일) |
 | `curation_effect.png` | MSI 분포 + MMMDB 브릿지 효과 4패널 시각화 |
-| `curation_report.md` | 본 요약 리포트 |
+| `docs/mmmdb_curation_report.md` | 본 요약 리포트 |
 
-**추가된 컬럼(10개):** `classification_original`, `classification_basis_original`, `mmmdb_reclassified`, `mmmdb_match`, `mmmdb_name`, `mmmdb_n_tissues`, `mmmdb_tissues`, `mmmdb_match_basis`, `msi_level`, `msi_evidence`
+**추가된 컬럼(9개):** `classification_basis (previous)`, `mmmdb_reclassified`, `mmmdb_match`, `mmmdb_name`, `mmmdb_n_tissues`, `mmmdb_tissues`, `mmmdb_match_basis`, `msi_level`, `msi_evidence`
+
+> 참고: 최종본(v3)에서는 원본 분류를 별도 `classification_original` 컬럼으로 두는 대신, 직전 분류 근거만 `classification_basis (previous)` 컬럼으로 보존한다. Legend·Summary 두 시트의 헤더와 색상 스와치는 Sheet1의 컬럼 그룹 색에 맞춰 통일했다.
 
 ---
 
