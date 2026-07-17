@@ -32,7 +32,7 @@ metabolite-study/
 │  ├─ assemble.py           per-species final file assembly (3 sheets)
 │  ├─ compare_legacy.py     reliability comparison against legacy step29
 │  └─ mmmdb/                MMMDB bridge + MSI confidence curation (mouse)
-├─ scripts/                 preprocessing (HTML extraction, etc.)
+├─ scripts/                 preprocessing (HTML extraction, species-overlap check, etc.)
 ├─ docs/                    curation report + effect figure
 ├─ legacy/                  original pipeline (step1–29, COCONUT 902-compound DB)
 ├─ format_excel.py          Excel 3-sheet (Data/Legend/Summary) formatting tool
@@ -98,6 +98,11 @@ Output: `mouse_final_curated.xlsx` (878 × 27, 3-sheet layout preserved), `data/
   - MSI grades assigned: L2 255 / L3 613 / L5 10
   - legacy step30 comparison: full InChIKey 52/56 (92.9%), skeleton 95/114 (83.3%); MMMDB corrects 4 legacy mislabels
   - output `mouse_final_curated.xlsx` (878 × 27, 3-sheet), see `docs/mmmdb_curation_report.md`
+- **2026-07-17** — human/mouse species-overlap check (`scripts/02_find_species_overlap.py`):
+  - match human vs mouse final files by InChIKey (full + 14-char skeleton), same rule as `compare_legacy.py`
+  - valid InChIKeys: human 453 / mouse 868; full-InChIKey common (same compound) **105** (human 23.2%, mouse 12.1%), skeleton-only 0
+  - classification agreement on the 105 shared compounds: **105/105 (100%)** — endogenous/exogenous/unverified fully consistent across species
+  - output `overlap_human_mouse.csv`
 
 ### Legacy
 
@@ -125,7 +130,7 @@ metabolite-study/
 │   ├─ assemble.py              종별 최종 파일 조립 (3시트)
 │   ├─ compare_legacy.py        legacy step29 신뢰성 비교
 │   └─ mmmdb/                   MMMDB 브릿지 + MSI 신뢰도 큐레이션 (쥐)
-├─ scripts/               HTML 추출 등 전처리 코드
+├─ scripts/               HTML 추출·종간 겹침 확인 등 전처리 코드
 ├─ docs/                  큐레이션 리포트 + 효과 그림
 ├─ legacy/                기존 파이프라인 (step1~29, COCONUT 902 화합물 DB)
 ├─ format_excel.py        엑셀 3시트(Data/Legend/Summary) 서식 도구
@@ -191,6 +196,11 @@ metabolite-study/
   - MSI 등급 부여: **L2 255 / L3 613 / L5 10**
   - legacy step30 비교: full InChIKey 52/56(92.9%), 골격 95/114(83.3%); MMMDB가 legacy 오분류 4건 교정
   - 산출 `mouse_final_curated.xlsx`(878 × 27, 3시트), 상세는 `docs/mmmdb_curation_report.md`
+- 2026-07-17 사람/쥐 종간 겹침 확인 (`scripts/02_find_species_overlap.py`):
+  - 사람/쥐 최종 파일을 InChIKey(full + 14자 skeleton)로 매칭, `compare_legacy.py`와 동일 규칙
+  - 유효 InChIKey 사람 453 / 쥐 868; full InChIKey 완전 일치(동일 화합물) **105건**(사람 23.2%, 쥐 12.1%), skeleton만 일치 0건
+  - 겹치는 105건의 분류 일치: **105/105(100%)** — endogenous/exogenous/unverified가 종간 완전 일관
+  - 산출 `overlap_human_mouse.csv`
 
 ### 기존 작업 (legacy)
 
