@@ -30,8 +30,10 @@ metabolite-study/
 │  ├─ collect_enzymes.py    KEGG EC + Reactome catalyst collection
 │  ├─ collect_brenda.py     BRENDA SOAP enzyme (EC) collection
 │  ├─ assemble.py           per-species final file assembly (3 sheets)
-│  └─ compare_legacy.py     reliability comparison against legacy step29
+│  ├─ compare_legacy.py     reliability comparison against legacy step29
+│  └─ mmmdb/                MMMDB bridge + MSI confidence curation (mouse)
 ├─ scripts/                 preprocessing (HTML extraction, etc.)
+├─ docs/                    curation report + effect figure
 ├─ legacy/                  original pipeline (step1–29, COCONUT 902-compound DB)
 ├─ format_excel.py          Excel 3-sheet (Data/Legend/Summary) formatting tool
 └─ validate.py              data validation tool
@@ -60,6 +62,16 @@ Core principle: do **not** reuse legacy data. Collect from each database directl
 
 Each species' result: `data/{species}/final/{species}_final.xlsx`.
 
+#### MMMDB bridge + MSI confidence curation (`pipeline/mmmdb/`, mouse)
+
+Non-target annotations carry species bias: human-centric databases (HMDB, ChEBI) mislabel mouse metabolites, and every feature needs a stated confidence. Two curation stages address this on the mouse result.
+
+- **Stage 3.5 — MMMDB bridge.** Cross-reference against MMMDB (Mouse Multiple Tissue Metabolome Database; Sugimoto et al., *NAR* 2012; CE-TOFMS, 11 tissues, 219 metabolites). Build a local reference table (296 compounds; name → KEGG → InChIKey resolution, matchable 228), then match mouse rows by priority full InChIKey → InChIKey14 skeleton → KEGG → ChEBI. A new **E0** rule (highest priority) reclassifies compounds detected in real mouse tissues as endogenous; original labels are preserved and every change is logged. Result: **53/878 matched (6.0%)**, **12 reclassified** (exogenous→endogenous 10, unverified→endogenous 2), endogenous 181 → 193. Corrects mouse amino acids (Valine, Isoleucine, Phenylalanine…), Pantothenate, and others wrongly flagged exogenous by human criteria.
+- **Stage 4.5 — MSI confidence grade.** Auto-assign per-compound annotation confidence from independent multi-database evidence: **L2** probable (structure + ≥2 independent DB IDs), **L3** tentative (structure, ≤1 DB), **L4** formula only, **L5** unknown. L1 is not assigned (non-target). Result: **L2 255 / L3 613 / L5 10** (L5 = peptide fragments with no identifier).
+- **Legacy step30 comparison.** Against the newer legacy output: full-InChIKey agreement 52/56 (92.9%), skeleton agreement 95/114 (83.3%); MMMDB corrects 4 compounds that legacy still mislabels.
+
+Output: `mouse_final_curated.xlsx` (878 × 27, 3-sheet layout preserved), `data/mouse/reference/mmmdb_reference.parquet`, and `docs/` (report + figure). See `docs/mmmdb_curation_report.md`.
+
 ### Data handling principles
 
 - `raw/` is preserved as-is, never modified.
@@ -80,6 +92,12 @@ Each species' result: `data/{species}/final/{species}_final.xlsx`.
   - HMDB & ChEBI identifiers 100% match; BRENDA & Reactome enzymes 100% match
   - the 3 mouse mismatches are COCONUT version differences / rule-priority differences (for Toluene, legacy is more robust)
   - Conclusion: legacy step29 reliability verified
+- **2026-07-17** — mouse MMMDB bridge + MSI confidence curation (`pipeline/mmmdb/`):
+  - MMMDB local reference built from 44 archived tissue CSVs (296 compounds, 228 matchable via name→KEGG→InChIKey)
+  - cross-reference 53/878 (6.0%); E0 reclassification 12 (exo→endo 10, unverified→endo 2), endogenous 181 → 193
+  - MSI grades assigned: L2 255 / L3 613 / L5 10
+  - legacy step30 comparison: full InChIKey 52/56 (92.9%), skeleton 95/114 (83.3%); MMMDB corrects 4 legacy mislabels
+  - output `mouse_final_curated.xlsx` (878 × 27, 3-sheet), see `docs/mmmdb_curation_report.md`
 
 ### Legacy
 
@@ -105,8 +123,10 @@ metabolite-study/
 │   ├─ collect_enzymes.py       KEGG EC + Reactome catalyst 수집
 │   ├─ collect_brenda.py        BRENDA SOAP 효소(EC) 수집
 │   ├─ assemble.py              종별 최종 파일 조립 (3시트)
-│   └─ compare_legacy.py        legacy step29 신뢰성 비교
+│   ├─ compare_legacy.py        legacy step29 신뢰성 비교
+│   └─ mmmdb/                   MMMDB 브릿지 + MSI 신뢰도 큐레이션 (쥐)
 ├─ scripts/               HTML 추출 등 전처리 코드
+├─ docs/                  큐레이션 리포트 + 효과 그림
 ├─ legacy/                기존 파이프라인 (step1~29, COCONUT 902 화합물 DB)
 ├─ format_excel.py        엑셀 3시트(Data/Legend/Summary) 서식 도구
 └─ validate.py            데이터 검증 도구
@@ -135,6 +155,16 @@ metabolite-study/
 
 각 종의 결과는 data/{species}/final/{species}_final.xlsx.
 
+#### MMMDB 브릿지 + MSI 신뢰도 큐레이션 (`pipeline/mmmdb/`, 쥐)
+
+논타겟 어노테이션은 종 편향을 갖는다. 인간 중심 DB(HMDB, ChEBI)는 쥐 대사체를 오분류하고, 모든 피처에는 신뢰도가 명시되어야 한다. 쥐 결과에 두 큐레이션 단계를 적용한다.
+
+- **Stage 3.5 — MMMDB 브릿지.** MMMDB(Mouse Multiple Tissue Metabolome Database; Sugimoto et al., *NAR* 2012; CE-TOFMS, 11조직, 219 대사체)와 교차참조. 로컬 참조 테이블(296 화합물; 이름 → KEGG → InChIKey 해석, 매칭 가능 228)을 만들고, 우선순위 full InChIKey → InChIKey14 골격 → KEGG → ChEBI로 쥐 행을 매칭한다. 신규 **E0** 규칙(최우선)은 실제 쥐 조직에서 검출된 화합물을 내인성으로 재분류하며, 원본 분류는 보존하고 변경 이력을 기록한다. 결과: **53/878 매칭(6.0%)**, **12개 재분류**(외인성→내인성 10, unverified→내인성 2), 내인성 181 → 193. 인간 기준으로 외인성 오분류된 쥐 아미노산(Valine, Isoleucine, Phenylalanine…), Pantothenate 등을 교정.
+- **Stage 4.5 — MSI 신뢰도 등급.** 독립 다중 DB 근거로 화합물별 어노테이션 신뢰도를 자동 부여: **L2** probable(구조 + 독립 DB ID ≥2), **L3** tentative(구조, ≤1 DB), **L4** formula, **L5** unknown. L1은 비표적이라 부여하지 않음. 결과: **L2 255 / L3 613 / L5 10** (L5 = 식별자 없는 펩타이드 조각).
+- **legacy step30 비교.** 최신 legacy 산출물 대비: full InChIKey 일치 52/56(92.9%), 골격 일치 95/114(83.3%); legacy가 여전히 오분류하는 4개를 MMMDB가 교정.
+
+산출: `mouse_final_curated.xlsx`(878 × 27, 3시트 유지), `data/mouse/reference/mmmdb_reference.parquet`, `docs/`(리포트 + 그림). 상세는 `docs/mmmdb_curation_report.md`.
+
 ### 데이터 처리 원칙
 
 - raw/는 원본 보존, 수정하지 않음
@@ -155,6 +185,12 @@ metabolite-study/
   - HMDB·ChEBI identifier 100% 일치, BRENDA·Reactome 효소 100% 일치
   - 쥐 불일치 3건은 COCONUT 버전차/규칙 우선순위차(Toluene은 legacy가 더 견고)
   - **결론: legacy step29 신뢰성 검증됨**
+- 2026-07-17 쥐 MMMDB 브릿지 + MSI 신뢰도 큐레이션 (`pipeline/mmmdb/`):
+  - 아카이브된 조직 CSV 44개로 MMMDB 로컬 참조 구축(296 화합물, 이름→KEGG→InChIKey로 228개 매칭 가능)
+  - 교차참조 53/878(6.0%); E0 재분류 12개(외인성→내인성 10, unverified→내인성 2), 내인성 181 → 193
+  - MSI 등급 부여: **L2 255 / L3 613 / L5 10**
+  - legacy step30 비교: full InChIKey 52/56(92.9%), 골격 95/114(83.3%); MMMDB가 legacy 오분류 4건 교정
+  - 산출 `mouse_final_curated.xlsx`(878 × 27, 3시트), 상세는 `docs/mmmdb_curation_report.md`
 
 ### 기존 작업 (legacy)
 
