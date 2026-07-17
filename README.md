@@ -32,7 +32,7 @@ metabolite-study/
 │  ├─ assemble.py           per-species final file assembly (3 sheets)
 │  ├─ compare_legacy.py     reliability comparison against legacy step29
 │  └─ mmmdb/                MMMDB bridge + MSI confidence curation (mouse)
-├─ scripts/                 preprocessing (HTML extraction, species-overlap check, etc.)
+├─ scripts/                 preprocessing (HTML extraction, species-overlap check, dedup, etc.)
 ├─ docs/                    curation report + effect figure
 ├─ legacy/                  original pipeline (step1–29, COCONUT 902-compound DB)
 ├─ format_excel.py          Excel 3-sheet (Data/Legend/Summary) formatting tool
@@ -103,6 +103,12 @@ Output: `mouse_final_curated.xlsx` (878 × 27, 3-sheet layout preserved), `data/
   - valid InChIKeys: human 453 / mouse 868; full-InChIKey common (same compound) **105** (human 23.2%, mouse 12.1%), skeleton-only 0
   - classification agreement on the 105 shared compounds: **105/105 (100%)** — endogenous/exogenous/unverified fully consistent across species
   - output `overlap_human_mouse.csv`
+- **2026-07-17** — deduplicate final files (`scripts/03_deduplicate_final.py`):
+  - the latest final files carried repeated compounds (fully-identical rows sharing the same `Database ID`)
+  - remove duplicates by `Database ID` (keep first); 3-sheet layout preserved, Summary counts recomputed
+  - human 455 → **316** (removed 139); mouse 878 → **717** (removed 161)
+  - InChIKey collisions with distinct `Database ID` (stereoisomers, e.g. DL-Threonine/Threonine, Leucine/DL-Leucine) are kept, not removed
+  - output `{species}_final_dedup.xlsx` (original files untouched)
 
 ### Legacy
 
@@ -130,7 +136,7 @@ metabolite-study/
 │   ├─ assemble.py              종별 최종 파일 조립 (3시트)
 │   ├─ compare_legacy.py        legacy step29 신뢰성 비교
 │   └─ mmmdb/                   MMMDB 브릿지 + MSI 신뢰도 큐레이션 (쥐)
-├─ scripts/               HTML 추출·종간 겹침 확인 등 전처리 코드
+├─ scripts/               HTML 추출·종간 겹침 확인·중복 제거 등 전처리 코드
 ├─ docs/                  큐레이션 리포트 + 효과 그림
 ├─ legacy/                기존 파이프라인 (step1~29, COCONUT 902 화합물 DB)
 ├─ format_excel.py        엑셀 3시트(Data/Legend/Summary) 서식 도구
@@ -201,6 +207,12 @@ metabolite-study/
   - 유효 InChIKey 사람 453 / 쥐 868; full InChIKey 완전 일치(동일 화합물) **105건**(사람 23.2%, 쥐 12.1%), skeleton만 일치 0건
   - 겹치는 105건의 분류 일치: **105/105(100%)** — endogenous/exogenous/unverified가 종간 완전 일관
   - 산출 `overlap_human_mouse.csv`
+- 2026-07-17 최종 파일 중복 제거 (`scripts/03_deduplicate_final.py`):
+  - 최신 최종 파일에 같은 화합물이 반복된 행(같은 `Database ID`의 완전 동일 행)이 남아 있었음
+  - `Database ID` 기준으로 중복 제거(첫 행 유지); 3시트 유지, Summary 카운트 재계산
+  - 사람 455 → **316**(139행 제거); 쥐 878 → **717**(161행 제거)
+  - InChIKey는 같지만 `Database ID`가 다른 입체이성질체(예: DL-Threonine/Threonine, Leucine/DL-Leucine)는 유지(제거 안 함)
+  - 산출 `{species}_final_dedup.xlsx` (원본 파일은 그대로 둠)
 
 ### 기존 작업 (legacy)
 
