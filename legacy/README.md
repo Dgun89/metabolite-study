@@ -139,7 +139,7 @@ Note: High unverified rate reflects the nature of the dataset (COCONUT-based nat
 | Unverified | 722 | 668 | 668 |
 
 - 52 compounds show conflicting classification between ChEBI and HMDB
-- Awaiting professor's guidance on which approach to adopt
+- Awaiting guidance on which approach to adopt
 
 ### Day 8
 - Explored MetaboAnalyst pathway analysis using 45 endogenous metabolites with KEGG IDs
