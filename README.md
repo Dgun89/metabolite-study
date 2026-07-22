@@ -1,219 +1,273 @@
 # metabolite-study
 
-> Compound annotation and endogenous/exogenous classification for metabolite data (human and mouse serum).
-> 대사체 데이터의 화합물 주석(annotation) 및 내인성/외인성(endogenous/exogenous) 분류 프로젝트.
+> InChIKey-normalized compound database and endogenous/exogenous classification for metabolite data (human, mouse serum, mouse feces).
+> InChIKey 정규화 화합물 데이터베이스 및 내인성/외인성(endogenous/exogenous) 분류 프로젝트 (사람·쥐 혈청·쥐 분변).
 
 **Language / 언어: [English](#english) · [한국어](#한국어)**
 
 ## Related repositories / 관련 저장소
 
 - [DarkMet](https://github.com/dgun89/DarkMet) — classifies the *unverified* (dark metabolome) compounds this project surfaces, predicting origin from structure (SMILES) alone. / 이 프로젝트가 드러낸 미검증(dark metabolome) 화합물을 구조(SMILES)만으로 기원 예측·분류.
-- [lipidomics-ai-agent](https://github.com/dgun89/lipidomics-ai-agent) — reuses the DB built here (902 compounds, 3,491 enzyme relations) for RAG/GraphRAG experiments on grounding and identifier reliability. / 여기서 구축한 DB(902개 화합물, 3,491개 효소 관계)를 RAG/GraphRAG 실험에 재사용.
+- [lipidomics-ai-agent](https://github.com/dgun89/lipidomics-ai-agent) — reuses the DB built here for RAG/GraphRAG experiments on grounding and identifier reliability. / 여기서 구축한 DB를 RAG/GraphRAG 실험에 재사용.
 
 ---
 
 ## English
 
-### Project structure
+### What this is
 
-```
-metabolite-study/
-├─ data/                    working data (human · mouse)
-│  ├─ reference/            reference downloads (full COCONUT CSV, HMDB XML, etc.)
-│  ├─ human/                human serum (raw → interim → final)
-│  └─ mouse/                mouse serum (raw → interim → final)
-├─ pipeline/                DB-from-scratch pipeline (shared code, switch by SPECIES)
-│  ├─ config.py             paths & constants (get_paths(species))
-│  ├─ collect_identifiers.py  InChIKey-based identifier cross-collection (UniChem/ChEBI/PubChem)
-│  ├─ build_hmdb_index.py   local HMDB XML streaming index
-│  ├─ classify.py           rule-based endogenous/exogenous classification
-│  ├─ collect_enzymes.py    KEGG EC + Reactome catalyst collection
-│  ├─ collect_brenda.py     BRENDA SOAP enzyme (EC) collection
-│  ├─ assemble.py           per-species final file assembly (3 sheets)
-│  ├─ compare_legacy.py     reliability comparison against legacy step29
-│  └─ mmmdb/                MMMDB bridge + MSI confidence curation (mouse)
-├─ scripts/                 preprocessing (HTML extraction, species-overlap check, dedup, etc.)
-├─ docs/                    curation report + effect figure
-├─ legacy/                  original pipeline (step1–29, COCONUT 902-compound DB)
-├─ format_excel.py          Excel 3-sheet (Data/Legend/Summary) formatting tool
-└─ validate.py              data validation tool
-```
+Three metabolite datasets — **human** serum, **mouse_serum**, and **mouse_feces** (the last is the dataset previously called *legacy*: rat/mouse feces, まうすのふん) — are collected from public databases and assembled into a single **InChIKey-normalized** relational schema. Every compound is keyed on its full 27-character **InChIKey** (structure identity), not on a COCONUT CNP id. Multi-valued facts (external DB ids, tissue origins, enzymes, per-source classification verdicts) are stored **long-format**, one row per fact, each carrying provenance (`source`, `source_version`, `retrieved_at`).
 
-### Current work — direct DB collection for new human/mouse files + legacy reliability check
+The whole pipeline is **rebuilt from the original source files** — no legacy data is reused — so an independent reproduction serves as a reliability audit of the earlier hand-curated DB.
 
-For newly received human/mouse serum metabolites (COCONUT-annotated), the pipeline accesses each database directly — the same way as the legacy pipeline — to build the final files, then compares them against the legacy final file (step29) to validate the legacy's reliability.
+### Normalized schema (6 tables, `data/normalized/*.parquet`)
 
-Core principle: do **not** reuse legacy data. Collect from each database directly, so an independent reproduction verifies reliability.
+Primary key throughout is `inchikey` (full 27-char); `inchikey14` (14-char skeleton) is a secondary join axis for stereoisomer-collapsed matching.
 
-#### Pipeline (`pipeline/`, switch with `SPECIES=human|mouse`)
+| Table | Rows | Grain | Key columns |
+|---|---|---|---|
+| `compounds` | 1,721 | one per unique InChIKey | inchikey, inchikey14, smiles, inchi, formula, compound_name, msi_level, msi_evidence, mmmdb_detected, mmmdb_n_tissues |
+| `compound_external_ids` | 8,092 | one per (compound, DB, id) | inchikey, source, external_id, + provenance |
+| `compound_origins` | 23,278 | one per (compound, origin fact) | inchikey, source, origin_label, + provenance |
+| `compound_classification` | 1,721 | one verdict per compound | inchikey, classification, classification_basis, conflict_flag, conflicting_sources, source_verdicts, + ruleset provenance |
+| `compound_enzymes` | 6,592 | one per (compound, EC) | inchikey, ec, source, + provenance |
+| `compound_species` | 1,935 | one per (compound, dataset) | inchikey, species ∈ {human, mouse_serum, mouse_feces} |
 
-1. **COCONUT local join** — join the source xlsx CNP ids (base id, version suffix stripped) against the full COCONUT CSV (738,827 rows) → SMILES / InChIKey / InChI / formula / organisms / np_classifier. Match rate: human 453/455 (99.6%), mouse 868/878 (98.9%). Zero API calls.
-2. **Identifier cross-collection** — parallel collection keyed on unique InChIKeys (914):
-   - UniChem `POST /unichem/api/v1/compounds` → HMDB id
-   - ChEBI `es_search` + compound detail → chebi_id, roles, KEGG/HMDB accession
-   - PubChem PUG REST → CID (fallback)
-   - Coverage: PubChem 97%, ChEBI 40%, HMDB 26%, KEGG 16%
-3. **HMDB local index** — stream the 6.1 GB XML with `iterparse`, extracting only target InChIKeys (221): ontology Source (Endogenous/Food/Plant…), protein gene_name, biospecimen.
-4. **Endogenous/exogenous classification (rule-based)** — priority: ChEBI role `human metabolite` → HMDB source Endogenous → COCONUT organisms *Homo sapiens* → (exogenous) HMDB food/drug/plant, ChEBI roles without human, non-human organisms → (unverified) no basis. Each row records its `classification_basis`.
-5. **Enzyme collection** — KEGG `link/enzyme/cpd:{id}` EC, Reactome mapping → catalystActivity, HMDB gene.
-6. **BRENDA enzyme collection** — SOAP (zeep), compound name → `getLigandStructureIdByCompoundName` → `getSubstrate` → EC. Auth `sha256(password)`, rate ≤ 1 req/sec.
-7. **Per-species final assembly** — `format_excel.py` builds the Data/Legend/Summary 3-sheet workbook.
-8. **Legacy step29 comparison** — on the common InChIKey intersection, cross-check classification, identifiers, and enzymes.
+Classification distribution: **endogenous 290 / exogenous 647 / unverified 784**; **169** compounds carry a source conflict, **58** are MMMDB-confirmed endogenous. MSI confidence: **L2 667 / L3 1,054**.
 
-Each species' result: `data/{species}/final/{species}_final.xlsx`.
+External-id coverage by source: COCONUT 2,446 · PubChem 1,636 · EPA CompTox 681 · ChEBI 655 · ChEMBL 464 · HMDB 390 · KEGG 261 · FooDB 254 · RCSB PDB 242 · PDBe 240 · Wikipedia 213 · BindingDB 208 · DrugBank 193 · LIPID MAPS 87 · DrugCentral 72 · Guide to Pharmacology 44 · SwissLipids 6. (Most are UniChem cross-links already returned during identifier collection — stored, not re-fetched.)
 
-#### MMMDB bridge + MSI confidence curation (`pipeline/mmmdb/`, mouse)
+### Pipeline (`pipeline/`, switch with `SPECIES=human|mouse_serum|mouse_feces`)
 
-Non-target annotations carry species bias: human-centric databases (HMDB, ChEBI) mislabel mouse metabolites, and every feature needs a stated confidence. Two curation stages address this on the mouse result.
+Code is species-agnostic; the dataset is selected by `config.get_paths(species)`. Paths are portable — `config.BASE` defaults to the repo root and is overridable via `METABO_BASE` / `METABO_WORK`.
 
-- **Stage 3.5 — MMMDB bridge.** Cross-reference against MMMDB (Mouse Multiple Tissue Metabolome Database; Sugimoto et al., *NAR* 2012; CE-TOFMS, 11 tissues, 219 metabolites). Build a local reference table (296 compounds; name → KEGG → InChIKey resolution, matchable 228), then match mouse rows by priority full InChIKey → InChIKey14 skeleton → KEGG → ChEBI. A new **E0** rule (highest priority) reclassifies compounds detected in real mouse tissues as endogenous; original labels are preserved and every change is logged. Result: **53/878 matched (6.0%)**, **12 reclassified** (exogenous→endogenous 10, unverified→endogenous 2), endogenous 181 → 193. Corrects mouse amino acids (Valine, Isoleucine, Phenylalanine…), Pantothenate, and others wrongly flagged exogenous by human criteria.
-- **Stage 4.5 — MSI confidence grade.** Auto-assign per-compound annotation confidence from independent multi-database evidence: **L2** probable (structure + ≥2 independent DB IDs), **L3** tentative (structure, ≤1 DB), **L4** formula only, **L5** unknown. L1 is not assigned (non-target). Result: **L2 255 / L3 613 / L5 10** (L5 = peptide fragments with no identifier).
-- **Legacy step30 comparison.** Against the newer legacy output: full-InChIKey agreement 52/56 (92.9%), skeleton agreement 95/114 (83.3%); MMMDB corrects 4 compounds that legacy still mislabels.
+0. **`00_make_seeds.py`** — extract CNP/PEP ids + compound name from each original xlsx → `{species}_seed.csv` (dup ids dropped).
+0b. **`00b_resolve_pep.py`** — resolve peptide (`PEP…`) entries to structures: PubChem name search → RDKit `MolFromSequence` fallback. Recovery 100% (human 1/1, mouse_serum 10/10, mouse_feces 49/49).
+1. **`01_coconut_join.py`** — join seed CNP ids against the local COCONUT CSV (738,827 rows, streamed): exact full-id match → base-id match with deterministic lowest-version selection (stereo ambiguity flagged) → PEP merge → PubChem name-search fallback for unmatched. **100% InChIKey coverage** on all three datasets. → `interim/{species}/{species}_step2_coconut.parquet`.
+2. **`collect_identifiers.py`** — parallel identifier collection keyed on unique InChIKeys (1,721): UniChem `POST /unichem/api/v1/compounds` (all cross-links), ChEBI (roles), PubChem PUG REST (CID). Provenance-logged.
+3. **`build_hmdb_index.py`** — stream the 6.1 GB HMDB XML with `iterparse`, extracting ontology source / protein / biospecimen for target InChIKeys.
+4. **`04_classify_run.py`** + **`classify.py`** — rule-based endogenous/exogenous with per-source verdicts. `classify_row_v3()` adds an **E0** rule (MMMDB tissue detection → endogenous, highest priority) on top of v2's ChEBI/HMDB/COCONUT rules, and emits `conflict_flag` / `conflicting_sources` when sources disagree. Legacy `classify_row()` / `classify_row_v2()` retained for back-compat.
+5. **`collect_enzymes.py`** — KEGG `link/enzyme` EC + Reactome catalyst mapping. **`collect_brenda.py`** — BRENDA SOAP (zeep), name → EC; auth `sha256(password)`, ≤ 1 req/sec.
+6. **`normalize.py`** — assemble the 6 long-format normalized tables; recompute classification with `classify_row_v3`, assign MSI grade, merge UniChem cross-links and MMMDB tissue origins. Explicit row sort: classification (endo→exo→unverified) → compound_name → inchikey.
+7. **`export_view.py`** — build the wide human-readable view and write the 3-sheet xlsx (Data/Legend/Summary) via `format_excel.py`, with color-grouped column headers.
+8. **`compare_legacy.py`** — reliability comparison against the original step29 DB on the common InChIKey intersection.
 
-Output: `mouse_final_curated.xlsx` (878 × 27, 3-sheet layout preserved), `data/mouse/reference/mmmdb_reference.parquet`, and `docs/` (report + figure). See `docs/mmmdb_curation_report.md`.
+### Exports (`data/export/*.xlsx`)
+
+Per-dataset and combined workbooks, InChIKey-first column layout, headers color-grouped by category (Basic Identifiers / External DB IDs / Classification / Identification Confidence / Enzyme Information / Dataset Membership / Classification Conflicts).
+
+- `human_final.xlsx` — 316 rows
+- `mouse_serum_final.xlsx` — 715 rows
+- `mouse_feces_final.xlsx` — 899 rows
+- `combined_final.xlsx` — 1,721 unique InChIKeys, with a `datasets` column recording which dataset(s) each compound comes from.
+
+Combined dataset membership: mouse_feces only 795 · mouse_serum only 533 · human only 199 · human+mouse_serum 90 · mouse_feces+mouse_serum 77 · all three 15 · human+mouse_feces 12. (Per-dataset row counts are below the seed counts because same-structure entries merge on InChIKey — by design.)
+
+### Legacy reliability comparison
+
+Reproduced `mouse_feces` vs the original hand-curated step29 DB (`legacy/etc/metabolites_step29.xlsx`), on the common InChIKey intersection:
+
+- **classification agreement**: full-IK **468/489 (95.7%)**, skeleton **787/861 (91.4%)**
+- **PubChem CID agreement**: full-IK **441/479 (92.1%)**
+- human full-IK 18/18 (100%), mouse_serum full-IK 48/54 (88.9%)
+
+Key finding — the full-IK intersection (489) is much smaller than the skeleton intersection (861) not because of error but because of **improved stereochemistry**: for 373 compounds the baseline carried a flat (`…-UHFFFAOYSA-…`) InChIKey while the reproduction recovered the stereo-defined key from COCONUT's `standard_inchi_key`. The new pipeline restores stereochemistry the legacy DB had lost. See `data/export/comparison_report.md` and `legacy_comparison.png`.
+
+### MMMDB bridge + MSI confidence (all datasets)
+
+MMMDB (Mouse Multiple Tissue Metabolome Database; Sugimoto et al., *NAR* 2012; CE-TOFMS, 11 tissues) is used as endogenous ground truth. A local reference (`data/mouse_serum/reference/mmmdb_reference.parquet`, 296 compounds) is matched by InChIKey / skeleton / KEGG; detection in real mouse tissue drives the E0 endogenous rule. Because tissue detection is structure-level evidence of mammalian endogeneity, it applies across all three datasets (58 compounds matched). MSI grade (L2 probable / L3 tentative / L4 formula-only / L5 unknown; L1 not assigned for non-target data) is assigned from independent multi-DB evidence.
+
+### Notes on the answered questions (2026-07-22)
+
+- **Primary key is InChIKey.** The `coconut_ids` column (formerly "Database ID") is a display/reference column only; all joins, merges, and sorting use InChIKey.
+- **`coconut_ids` may list two CNP ids** (`CNP…; CNP…`) when two COCONUT versions collapse to one InChIKey — 11 such rows in combined. This is not a duplicate column.
+- **Row order** is explicit: classification → compound_name → InChIKey.
+- **"N"** is not a column — earlier report notation `n=489` meant *number of common compounds*, not a spreadsheet column.
+- **Dataset renaming**: `mouse` → `mouse_serum`, `legacy` → `mouse_feces` (the feces sample).
 
 ### Data handling principles
 
 - `raw/` is preserved as-is, never modified.
-- `interim/` holds intermediate outputs, regenerable at any time (parquet checkpoints).
-- `final/` holds analysis/sharing outputs (3-sheet xlsx).
-- Code is species-agnostic (human/mouse); switch via the `SPECIES` setting.
+- `interim/` (under `.work/`) holds regenerable intermediate parquet checkpoints.
+- `data/normalized/` (6 parquet) and `data/export/` (xlsx) are the analysis/sharing outputs.
+- Code is dataset-agnostic; switch via `SPECIES`.
+
+### Project structure
+
+```
+metabolite-study/
+├─ data/
+│  ├─ reference/            reference downloads (COCONUT CSV, HMDB XML)
+│  ├─ human/                human serum (raw → interim)
+│  ├─ mouse_serum/          mouse serum (raw → interim; + reference/mmmdb_reference.parquet)
+│  ├─ mouse_feces/          mouse feces, formerly "legacy" (raw)
+│  ├─ normalized/           6 long-format normalized tables (parquet)
+│  └─ export/               final xlsx + reliability report/figure
+├─ pipeline/                InChIKey-normalized pipeline (shared code, switch by SPECIES)
+│  ├─ config.py             portable paths & constants (METABO_BASE/METABO_WORK)
+│  ├─ 00_make_seeds.py      seed extraction from original xlsx
+│  ├─ 00b_resolve_pep.py    peptide → structure resolution
+│  ├─ 01_coconut_join.py    COCONUT local join → InChIKey (100% coverage)
+│  ├─ collect_identifiers.py  UniChem/ChEBI/PubChem cross-collection
+│  ├─ build_hmdb_index.py   HMDB XML streaming index
+│  ├─ classify.py           rule-based classification (v1/v2/v3 + MSI)
+│  ├─ 04_classify_run.py    classification runner
+│  ├─ collect_enzymes.py    KEGG EC + Reactome catalyst
+│  ├─ collect_brenda.py     BRENDA SOAP enzyme (EC)
+│  ├─ normalize.py          assemble 6 normalized tables
+│  ├─ export_view.py        normalized → 3-sheet xlsx
+│  ├─ compare_legacy.py     reliability comparison vs legacy step29
+│  └─ mmmdb/                MMMDB reference build + MSI curation
+├─ scripts/                 preprocessing (HTML extraction, overlap, dedup)
+├─ legacy/                  original pipeline (step1–29) + step29 baseline
+├─ format_excel.py          Excel 3-sheet color-grouped formatting
+└─ validate.py              data validation
+```
 
 ### Progress log
 
-- **2026-07-08** — received new human/mouse files from the lab (COCONUT annotation).
-- **2026-07-10** — pipeline steps 1–7 complete:
-  - human 455 (endo 104 / exo 194 / unverified 157), enzyme info 129 (28.4%)
-  - mouse 878 (endo 181 / exo 341 / unverified 356), enzyme info 218 (24.8%)
-  - parallel identifier collection over 914 InChIKeys (0 errors), BRENDA EC matches 172 (by name)
-- **2026-07-10** — step 8, legacy step29 reliability comparison (common InChIKey intersection):
-  - full InChIKey intersection: human 15 / mouse 44
-  - classification agreement: human 15/15 (100%), mouse 41/44 (93.2%)
-  - HMDB & ChEBI identifiers 100% match; BRENDA & Reactome enzymes 100% match
-  - the 3 mouse mismatches are COCONUT version differences / rule-priority differences (for Toluene, legacy is more robust)
-  - Conclusion: legacy step29 reliability verified
-- **2026-07-17** — mouse MMMDB bridge + MSI confidence curation (`pipeline/mmmdb/`):
-  - MMMDB local reference built from 44 archived tissue CSVs (296 compounds, 228 matchable via name→KEGG→InChIKey)
-  - cross-reference 53/878 (6.0%); E0 reclassification 12 (exo→endo 10, unverified→endo 2), endogenous 181 → 193
-  - MSI grades assigned: L2 255 / L3 613 / L5 10
-  - legacy step30 comparison: full InChIKey 52/56 (92.9%), skeleton 95/114 (83.3%); MMMDB corrects 4 legacy mislabels
-  - output `mouse_final_curated.xlsx` (878 × 27, 3-sheet), see `docs/mmmdb_curation_report.md`
-- **2026-07-17** — human/mouse species-overlap check (`scripts/02_find_species_overlap.py`):
-  - match human vs mouse final files by InChIKey (full + 14-char skeleton), same rule as `compare_legacy.py`
-  - valid InChIKeys: human 453 / mouse 868; full-InChIKey common (same compound) **105** (human 23.2%, mouse 12.1%), skeleton-only 0
-  - classification agreement on the 105 shared compounds: **105/105 (100%)** — endogenous/exogenous/unverified fully consistent across species
-  - output `overlap_human_mouse.csv`
-- **2026-07-17** — deduplicate final files (`scripts/03_deduplicate_final.py`):
-  - the latest final files carried repeated compounds (fully-identical rows sharing the same `Database ID`)
-  - remove duplicates by `Database ID` (keep first); 3-sheet layout preserved, Summary counts recomputed
-  - human 455 → **316** (removed 139); mouse 878 → **717** (removed 161)
-  - InChIKey collisions with distinct `Database ID` (stereoisomers, e.g. DL-Threonine/Threonine, Leucine/DL-Leucine) are kept, not removed
-  - output `{species}_final_dedup.xlsx` (original files untouched)
+- **2026-07-22** — InChIKey normalization refactor:
+  - primary key COCONUT CNP id → **InChIKey**; 6 long-format normalized tables with per-row provenance
+  - COCONUT join 100% InChIKey coverage (human 316 / mouse_serum 717 / mouse_feces 902 seeds)
+  - identifier collection over 1,721 unique InChIKeys (0 errors); UniChem cross-links stored (external_ids 8,092)
+  - classification with per-source conflict flags: endo 290 / exo 647 / unverified 784, 169 conflicts, 58 MMMDB-endogenous
+  - MSI confidence L2 667 / L3 1,054; MMMDB applied across all datasets
+  - datasets renamed mouse→mouse_serum, legacy→mouse_feces
+  - legacy reliability (reproduced mouse_feces vs step29): classification 95.7% full-IK, PubChem CID 92.1%; stereochemistry recovered for 373 compounds
+  - exports: human 316 / mouse_serum 715 / mouse_feces 899 / combined 1,721, color-grouped headers, dataset-membership column
+  - fixed a build_wide index-alignment bug (exposed by the new explicit sort) that had corrupted aggregated columns
 
 ### Legacy
 
-`legacy/` is the COCONUT-based 902-compound DB pipeline (step1–29). Final classification: endogenous 143, exogenous 319, unverified 440. See `legacy/README.md` for details.
+`legacy/` is the original COCONUT-based step1–29 pipeline and the `metabolites_step29.xlsx` baseline used for the reliability check. See `legacy/README.md`.
 
 ---
 
 ## 한국어
 
+### 개요
+
+세 대사체 데이터셋 — **human**(사람 혈청), **mouse_serum**(쥐 혈청), **mouse_feces**(쥐 분변, まうすのふん — 이전에 *legacy*로 부르던 데이터셋) — 을 공개 DB에서 수집해 하나의 **InChIKey 정규화** 관계형 스키마로 조립한다. 모든 화합물은 COCONUT CNP id가 아니라 27자 **InChIKey**(구조 동일성)를 기본키로 한다. 다중값 정보(외부 DB id, 조직 기원, 효소, 소스별 분류 판정)는 **long-format**으로 사실 하나당 한 행씩 저장하며 각 행에 provenance(`source`, `source_version`, `retrieved_at`)를 붙인다.
+
+전체 파이프라인은 **원본 파일에서 처음부터 재구축**한다 — legacy 데이터를 재사용하지 않으므로, 독립적 재현이 기존 수기 큐레이션 DB에 대한 신뢰성 감사가 된다.
+
+### 정규화 스키마 (6개 테이블, `data/normalized/*.parquet`)
+
+기본키는 전부 `inchikey`(27자); `inchikey14`(14자 골격)는 입체이성질체 병합 매칭용 보조 축.
+
+| 테이블 | 행수 | 단위 | 주요 컬럼 |
+|---|---|---|---|
+| `compounds` | 1,721 | 고유 InChIKey 1개 | inchikey, inchikey14, smiles, inchi, formula, compound_name, msi_level, msi_evidence, mmmdb_detected, mmmdb_n_tissues |
+| `compound_external_ids` | 8,092 | (화합물, DB, id) 1개 | inchikey, source, external_id, + provenance |
+| `compound_origins` | 23,278 | (화합물, 기원 사실) 1개 | inchikey, source, origin_label, + provenance |
+| `compound_classification` | 1,721 | 화합물당 판정 1개 | inchikey, classification, classification_basis, conflict_flag, conflicting_sources, source_verdicts, + ruleset provenance |
+| `compound_enzymes` | 6,592 | (화합물, EC) 1개 | inchikey, ec, source, + provenance |
+| `compound_species` | 1,935 | (화합물, 데이터셋) 1개 | inchikey, species ∈ {human, mouse_serum, mouse_feces} |
+
+분류 분포: **endogenous 290 / exogenous 647 / unverified 784**; **169**개 화합물에 소스 충돌, **58**개 MMMDB 확인 내인성. MSI 신뢰도: **L2 667 / L3 1,054**.
+
+소스별 외부 id 커버리지: COCONUT 2,446 · PubChem 1,636 · EPA CompTox 681 · ChEBI 655 · ChEMBL 464 · HMDB 390 · KEGG 261 · FooDB 254 · RCSB PDB 242 · PDBe 240 · Wikipedia 213 · BindingDB 208 · DrugBank 193 · LIPID MAPS 87 · DrugCentral 72 · Guide to Pharmacology 44 · SwissLipids 6. (대부분 identifier 수집 시 UniChem이 이미 반환한 교차링크 — 재수집 없이 저장.)
+
+### 파이프라인 (`pipeline/`, `SPECIES=human|mouse_serum|mouse_feces` 전환)
+
+코드는 데이터셋 무관, `config.get_paths(species)`로 선택. 경로는 이식 가능 — `config.BASE`는 레포 루트가 기본이고 `METABO_BASE` / `METABO_WORK`로 오버라이드.
+
+0. **`00_make_seeds.py`** — 원본 xlsx에서 CNP/PEP id + 화합물명 추출 → `{species}_seed.csv`(중복 id 제거).
+0b. **`00b_resolve_pep.py`** — 펩타이드(`PEP…`) 항목 구조 복원: PubChem 이름검색 → RDKit `MolFromSequence` fallback. 복원율 100%(human 1/1, mouse_serum 10/10, mouse_feces 49/49).
+1. **`01_coconut_join.py`** — seed CNP id를 로컬 COCONUT CSV(738,827행, 스트리밍)와 조인: full-id 정확매칭 → base-id 매칭+최저버전 결정론적 선택(입체 애매 시 플래그) → PEP 병합 → 미매칭은 PubChem 이름검색 fallback. **3종 모두 100% InChIKey 커버리지.** → `interim/{species}/{species}_step2_coconut.parquet`.
+2. **`collect_identifiers.py`** — 고유 InChIKey(1,721) 기준 병렬 수집: UniChem `POST /unichem/api/v1/compounds`(전체 교차링크), ChEBI(roles), PubChem PUG REST(CID). Provenance 기록.
+3. **`build_hmdb_index.py`** — 6.1GB HMDB XML을 `iterparse` 스트리밍, 대상 InChIKey의 ontology source/protein/biospecimen 추출.
+4. **`04_classify_run.py`** + **`classify.py`** — 소스별 판정 규칙 기반 내인성/외인성. `classify_row_v3()`는 v2의 ChEBI/HMDB/COCONUT 규칙 위에 **E0**(MMMDB 조직 검출→내인성, 최우선)를 추가하고, 소스 불일치 시 `conflict_flag` / `conflicting_sources`를 기록. 기존 `classify_row()` / `classify_row_v2()`는 하위호환 유지.
+5. **`collect_enzymes.py`** — KEGG `link/enzyme` EC + Reactome catalyst. **`collect_brenda.py`** — BRENDA SOAP(zeep), 이름 → EC; 인증 `sha256(password)`, ≤ 1 req/sec.
+6. **`normalize.py`** — 6개 long-format 정규화 테이블 조립; `classify_row_v3`로 분류 재계산, MSI 등급 부여, UniChem 교차링크·MMMDB 조직 기원 병합. 명시적 행정렬: 분류(endo→exo→unverified) → compound_name → inchikey.
+7. **`export_view.py`** — 넓은 형태 뷰 생성, `format_excel.py`로 3시트 xlsx(Data/Legend/Summary) 작성, 컬럼 헤더 색상 그룹화.
+8. **`compare_legacy.py`** — 기존 step29 DB와 공통 InChIKey 교집합에서 신뢰성 대조.
+
+### Export (`data/export/*.xlsx`)
+
+데이터셋별·통합 워크북, InChIKey 맨앞 컬럼 배치, 카테고리별 헤더 색상 그룹(Basic Identifiers / External DB IDs / Classification / Identification Confidence / Enzyme Information / Dataset Membership / Classification Conflicts).
+
+- `human_final.xlsx` — 316행
+- `mouse_serum_final.xlsx` — 715행
+- `mouse_feces_final.xlsx` — 899행
+- `combined_final.xlsx` — 고유 InChIKey 1,721개, 각 화합물의 출처 데이터셋을 `datasets` 컬럼에 기록.
+
+통합본 데이터셋 소속: mouse_feces 단독 795 · mouse_serum 단독 533 · human 단독 199 · human+mouse_serum 90 · mouse_feces+mouse_serum 77 · 3종 전부 15 · human+mouse_feces 12. (데이터셋별 행수가 seed보다 적은 건 동일 구조가 InChIKey로 병합되기 때문 — 설계대로.)
+
+### legacy 신뢰성 대조
+
+재현 `mouse_feces` vs 기존 수기 큐레이션 step29 DB(`legacy/etc/metabolites_step29.xlsx`), 공통 InChIKey 교집합:
+
+- **분류 일치**: full-IK **468/489 (95.7%)**, skeleton **787/861 (91.4%)**
+- **PubChem CID 일치**: full-IK **441/479 (92.1%)**
+- human full-IK 18/18(100%), mouse_serum full-IK 48/54(88.9%)
+
+핵심 발견 — full-IK 교집합(489)이 skeleton 교집합(861)보다 훨씬 작은 것은 오류가 아니라 **입체화학 개선** 때문이다: 373개 화합물에서 baseline은 평면(`…-UHFFFAOYSA-…`) InChIKey를 가졌던 반면 재현은 COCONUT `standard_inchi_key`로 입체 정의된 키를 복원했다. 새 파이프라인이 legacy DB에서 소실된 입체화학을 복원한 것이다. `data/export/comparison_report.md`와 `legacy_comparison.png` 참고.
+
+### MMMDB 브릿지 + MSI 신뢰도 (전 데이터셋)
+
+MMMDB(Mouse Multiple Tissue Metabolome Database; Sugimoto et al., *NAR* 2012; CE-TOFMS, 11조직)를 내인성 ground truth로 사용. 로컬 참조(`data/mouse_serum/reference/mmmdb_reference.parquet`, 296 화합물)를 InChIKey/골격/KEGG로 매칭; 실제 쥐 조직 검출이 E0 내인성 규칙을 구동한다. 조직 검출은 포유류 내인성의 구조 수준 증거이므로 3종 데이터셋 전부에 적용(58개 매칭). MSI 등급(L2 probable / L3 tentative / L4 formula만 / L5 unknown; 논타겟이라 L1 미부여)은 독립 다중 DB 근거로 부여.
+
+### 답변한 질문 메모 (2026-07-22)
+
+- **기본키는 InChIKey.** `coconut_ids` 컬럼(이전 "Database ID")은 표시·참조용일 뿐, 모든 조인·병합·정렬은 InChIKey로 한다.
+- **`coconut_ids`에 CNP 2개**(`CNP…; CNP…`)가 들어갈 수 있음 — COCONUT 두 버전이 한 InChIKey로 병합될 때(통합본 11행). 컬럼 중복이 아님.
+- **행 순서**는 명시적: 분류 → compound_name → InChIKey.
+- **"N"**은 컬럼이 아님 — 이전 리포트의 `n=489` 표기는 *공통 화합물 개수*를 뜻함.
+- **데이터셋 개명**: `mouse` → `mouse_serum`, `legacy` → `mouse_feces`(분변 시료).
+
+### 데이터 처리 원칙
+
+- `raw/`는 원본 보존, 수정하지 않음.
+- `interim/`(`.work/` 하위)은 재생성 가능한 중간 parquet 체크포인트.
+- `data/normalized/`(6 parquet)와 `data/export/`(xlsx)가 분석·공유용 산출물.
+- 코드는 데이터셋 무관, `SPECIES`로 전환.
+
 ### 프로젝트 구조
 
 ```
 metabolite-study/
-├─ data/                  작업 데이터 (사람·쥐)
-│   ├─ reference/         COCONUT 전체 CSV, HMDB XML 등 참조용 다운로드 파일
-│   ├─ human/             사람 혈청 (raw → interim → final)
-│   └─ mouse/             쥐 혈청 (raw → interim → final)
-├─ pipeline/              DB-legacy 재현 파이프라인 (공통 코드, SPECIES 전환)
-│   ├─ config.py          경로·상수 (get_paths(species))
-│   ├─ collect_identifiers.py   InChIKey 기반 identifier 교차수집 (UniChem/ChEBI/PubChem)
-│   ├─ build_hmdb_index.py      HMDB 로컬 XML 스트리밍 인덱스
-│   ├─ classify.py              규칙 기반 내인성/외인성 분류
-│   ├─ collect_enzymes.py       KEGG EC + Reactome catalyst 수집
-│   ├─ collect_brenda.py        BRENDA SOAP 효소(EC) 수집
-│   ├─ assemble.py              종별 최종 파일 조립 (3시트)
-│   ├─ compare_legacy.py        legacy step29 신뢰성 비교
-│   └─ mmmdb/                   MMMDB 브릿지 + MSI 신뢰도 큐레이션 (쥐)
-├─ scripts/               HTML 추출·종간 겹침 확인·중복 제거 등 전처리 코드
-├─ docs/                  큐레이션 리포트 + 효과 그림
-├─ legacy/                기존 파이프라인 (step1~29, COCONUT 902 화합물 DB)
-├─ format_excel.py        엑셀 3시트(Data/Legend/Summary) 서식 도구
-└─ validate.py            데이터 검증 도구
+├─ data/
+│  ├─ reference/            참조 다운로드 (COCONUT CSV, HMDB XML)
+│  ├─ human/                사람 혈청 (raw → interim)
+│  ├─ mouse_serum/          쥐 혈청 (raw → interim; + reference/mmmdb_reference.parquet)
+│  ├─ mouse_feces/          쥐 분변, 이전 "legacy" (raw)
+│  ├─ normalized/           6개 long-format 정규화 테이블 (parquet)
+│  └─ export/               최종 xlsx + 신뢰성 리포트/그림
+├─ pipeline/                InChIKey 정규화 파이프라인 (공통 코드, SPECIES 전환)
+│  ├─ config.py             이식 가능 경로·상수 (METABO_BASE/METABO_WORK)
+│  ├─ 00_make_seeds.py      원본 xlsx에서 seed 추출
+│  ├─ 00b_resolve_pep.py    펩타이드 → 구조 복원
+│  ├─ 01_coconut_join.py    COCONUT 로컬 조인 → InChIKey (100% 커버리지)
+│  ├─ collect_identifiers.py  UniChem/ChEBI/PubChem 교차수집
+│  ├─ build_hmdb_index.py   HMDB XML 스트리밍 인덱스
+│  ├─ classify.py           규칙 기반 분류 (v1/v2/v3 + MSI)
+│  ├─ 04_classify_run.py    분류 실행기
+│  ├─ collect_enzymes.py    KEGG EC + Reactome catalyst
+│  ├─ collect_brenda.py     BRENDA SOAP 효소(EC)
+│  ├─ normalize.py          6개 정규화 테이블 조립
+│  ├─ export_view.py        정규화 → 3시트 xlsx
+│  ├─ compare_legacy.py     legacy step29 신뢰성 대조
+│  └─ mmmdb/                MMMDB 참조 구축 + MSI 큐레이션
+├─ scripts/                 전처리 (HTML 추출, 겹침, 중복제거)
+├─ legacy/                  기존 파이프라인 (step1~29) + step29 baseline
+├─ format_excel.py          엑셀 3시트 색상 그룹 서식
+└─ validate.py              데이터 검증
 ```
-
-### 현재 작업 — 새 사람·쥐 파일의 DB 직접 취합 + legacy 신뢰성 검증
-
-연구실에서 새로 받은 사람/쥐 혈청 대사체(COCONUT으로 주석된 화합물)에 대해, legacy 파이프라인과 동일한 방식으로 **각 DB에 직접 접근**하여 최종 파일을 만들고, legacy 최종 파일(step29)과 비교하여 legacy의 신뢰성을 확인한다.
-
-핵심 원칙: **legacy 데이터를 재사용하지 않고 각 DB에서 직접 수집** → 독립적 재현으로 신뢰성 검증.
-
-#### 파이프라인 (pipeline/, SPECIES=human|mouse 전환)
-
-1. **COCONUT 로컬 조인** — 원본 xlsx의 CNP id(버전 접미사 제거한 base id)로 COCONUT 전체 CSV(738,827행)와 조인 → SMILES/InChIKey/InChI/formula/organisms/np_classifier. 매칭률 사람 453/455(99.6%), 쥐 868/878(98.9%). **API 0회.**
-2. **identifier 교차수집** — 고유 InChIKey(914개) 기준 병렬 수집:
-   - UniChem POST `/unichem/api/v1/compounds` → HMDB id
-   - ChEBI es_search + compound detail → chebi_id, roles, KEGG/HMDB accession
-   - PubChem PUG REST → CID (fallback)
-   - 커버리지: PubChem 97%, ChEBI 40%, HMDB 26%, KEGG 16%
-3. **HMDB 로컬 인덱스** — 6.1GB XML을 iterparse 스트리밍, 대상 InChIKey만 추출(221개): ontology Source(Endogenous/Food/Plant…), protein gene_name, biospecimen.
-4. **내인성/외인성 분류 (규칙 기반)** — 우선순위: ChEBI role 'human metabolite' → HMDB source Endogenous → COCONUT organisms Homo sapiens → (외인성) HMDB food/drug/plant, ChEBI roles만 있고 human 아님, organisms 비인간 → (unverified) 근거 없음. 각 행에 classification_basis 기록.
-5. **효소 수집** — KEGG `link/enzyme/cpd:{id}` EC, Reactome mapping→catalystActivity, HMDB gene.
-6. **BRENDA 효소 수집** — SOAP(zeep), 화합물명 → getLigandStructureIdByCompoundName → getSubstrate → EC. 인증 sha256(password), rate ≤1 req/sec.
-7. **종별 최종 파일 조립** — format_excel.py로 Data/Legend/Summary 3시트 생성.
-8. **legacy step29 비교** — 공통 InChIKey 교집합에서 분류·identifier·효소 일치율 대조.
-
-각 종의 결과는 data/{species}/final/{species}_final.xlsx.
-
-#### MMMDB 브릿지 + MSI 신뢰도 큐레이션 (`pipeline/mmmdb/`, 쥐)
-
-논타겟 어노테이션은 종 편향을 갖는다. 인간 중심 DB(HMDB, ChEBI)는 쥐 대사체를 오분류하고, 모든 피처에는 신뢰도가 명시되어야 한다. 쥐 결과에 두 큐레이션 단계를 적용한다.
-
-- **Stage 3.5 — MMMDB 브릿지.** MMMDB(Mouse Multiple Tissue Metabolome Database; Sugimoto et al., *NAR* 2012; CE-TOFMS, 11조직, 219 대사체)와 교차참조. 로컬 참조 테이블(296 화합물; 이름 → KEGG → InChIKey 해석, 매칭 가능 228)을 만들고, 우선순위 full InChIKey → InChIKey14 골격 → KEGG → ChEBI로 쥐 행을 매칭한다. 신규 **E0** 규칙(최우선)은 실제 쥐 조직에서 검출된 화합물을 내인성으로 재분류하며, 원본 분류는 보존하고 변경 이력을 기록한다. 결과: **53/878 매칭(6.0%)**, **12개 재분류**(외인성→내인성 10, unverified→내인성 2), 내인성 181 → 193. 인간 기준으로 외인성 오분류된 쥐 아미노산(Valine, Isoleucine, Phenylalanine…), Pantothenate 등을 교정.
-- **Stage 4.5 — MSI 신뢰도 등급.** 독립 다중 DB 근거로 화합물별 어노테이션 신뢰도를 자동 부여: **L2** probable(구조 + 독립 DB ID ≥2), **L3** tentative(구조, ≤1 DB), **L4** formula, **L5** unknown. L1은 비표적이라 부여하지 않음. 결과: **L2 255 / L3 613 / L5 10** (L5 = 식별자 없는 펩타이드 조각).
-- **legacy step30 비교.** 최신 legacy 산출물 대비: full InChIKey 일치 52/56(92.9%), 골격 일치 95/114(83.3%); legacy가 여전히 오분류하는 4개를 MMMDB가 교정.
-
-산출: `mouse_final_curated.xlsx`(878 × 27, 3시트 유지), `data/mouse/reference/mmmdb_reference.parquet`, `docs/`(리포트 + 그림). 상세는 `docs/mmmdb_curation_report.md`.
-
-### 데이터 처리 원칙
-
-- raw/는 원본 보존, 수정하지 않음
-- interim/은 중간 산출물, 언제든 재생성 가능 (parquet 체크포인트)
-- final/은 분석·공유용 최종 결과 (3시트 xlsx)
-- 코드는 종(human/mouse) 무관하게 공통 사용, SPECIES 설정으로 전환
 
 ### 진행 로그
 
-- 2026-07-08 연구실에서 새 사람/쥐 파일 수신 (COCONUT annotation).
-- 2026-07-10 파이프라인 1~7단계 완료:
-  - 사람 455개 (endo 104 / exo 194 / unverified 157), 효소 정보 129개(28.4%)
-  - 쥐 878개 (endo 181 / exo 341 / unverified 356), 효소 정보 218개(24.8%)
-  - identifier 병렬 수집 914 InChIKey (오류 0), BRENDA EC 매칭 172개(이름 기준)
-- 2026-07-10 8단계 legacy step29 신뢰성 비교 완료 (공통 InChIKey 교집합):
-  - full InChIKey 교집합 사람 15 / 쥐 44
-  - **분류 일치 사람 15/15(100%), 쥐 41/44(93.2%)**
-  - HMDB·ChEBI identifier 100% 일치, BRENDA·Reactome 효소 100% 일치
-  - 쥐 불일치 3건은 COCONUT 버전차/규칙 우선순위차(Toluene은 legacy가 더 견고)
-  - **결론: legacy step29 신뢰성 검증됨**
-- 2026-07-17 쥐 MMMDB 브릿지 + MSI 신뢰도 큐레이션 (`pipeline/mmmdb/`):
-  - 아카이브된 조직 CSV 44개로 MMMDB 로컬 참조 구축(296 화합물, 이름→KEGG→InChIKey로 228개 매칭 가능)
-  - 교차참조 53/878(6.0%); E0 재분류 12개(외인성→내인성 10, unverified→내인성 2), 내인성 181 → 193
-  - MSI 등급 부여: **L2 255 / L3 613 / L5 10**
-  - legacy step30 비교: full InChIKey 52/56(92.9%), 골격 95/114(83.3%); MMMDB가 legacy 오분류 4건 교정
-  - 산출 `mouse_final_curated.xlsx`(878 × 27, 3시트), 상세는 `docs/mmmdb_curation_report.md`
-- 2026-07-17 사람/쥐 종간 겹침 확인 (`scripts/02_find_species_overlap.py`):
-  - 사람/쥐 최종 파일을 InChIKey(full + 14자 skeleton)로 매칭, `compare_legacy.py`와 동일 규칙
-  - 유효 InChIKey 사람 453 / 쥐 868; full InChIKey 완전 일치(동일 화합물) **105건**(사람 23.2%, 쥐 12.1%), skeleton만 일치 0건
-  - 겹치는 105건의 분류 일치: **105/105(100%)** — endogenous/exogenous/unverified가 종간 완전 일관
-  - 산출 `overlap_human_mouse.csv`
-- 2026-07-17 최종 파일 중복 제거 (`scripts/03_deduplicate_final.py`):
-  - 최신 최종 파일에 같은 화합물이 반복된 행(같은 `Database ID`의 완전 동일 행)이 남아 있었음
-  - `Database ID` 기준으로 중복 제거(첫 행 유지); 3시트 유지, Summary 카운트 재계산
-  - 사람 455 → **316**(139행 제거); 쥐 878 → **717**(161행 제거)
-  - InChIKey는 같지만 `Database ID`가 다른 입체이성질체(예: DL-Threonine/Threonine, Leucine/DL-Leucine)는 유지(제거 안 함)
-  - 산출 `{species}_final_dedup.xlsx` (원본 파일은 그대로 둠)
+- **2026-07-22** — InChIKey 정규화 리팩터링:
+  - 기본키 COCONUT CNP id → **InChIKey**; 행 단위 provenance 포함 6개 long-format 정규화 테이블
+  - COCONUT 조인 100% InChIKey 커버리지 (seed human 316 / mouse_serum 717 / mouse_feces 902)
+  - 고유 InChIKey 1,721개 identifier 수집(오류 0); UniChem 교차링크 저장(external_ids 8,092)
+  - 소스별 충돌 플래그 포함 분류: endo 290 / exo 647 / unverified 784, 충돌 169, MMMDB 내인성 58
+  - MSI 신뢰도 L2 667 / L3 1,054; MMMDB 전 데이터셋 적용
+  - 데이터셋 개명 mouse→mouse_serum, legacy→mouse_feces
+  - legacy 신뢰성(재현 mouse_feces vs step29): 분류 full-IK 95.7%, PubChem CID 92.1%; 373개 화합물 입체화학 복원
+  - export: human 316 / mouse_serum 715 / mouse_feces 899 / 통합 1,721, 헤더 색상 그룹, 데이터셋 소속 컬럼
+  - 명시적 정렬 도입으로 드러난 build_wide 인덱스 정렬 버그(aggregated 컬럼 손상) 수정
 
 ### 기존 작업 (legacy)
 
-legacy/는 COCONUT 기반 902 화합물 DB 구축 파이프라인(step1~29). 최종 분류: endogenous 143, exogenous 319, unverified 440. 상세는 legacy/README.md 참고.
+`legacy/`는 원래 COCONUT 기반 step1~29 파이프라인과 신뢰성 검증용 `metabolites_step29.xlsx` baseline. 상세는 `legacy/README.md`.

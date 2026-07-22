@@ -6,9 +6,11 @@ import sys, json
 from pathlib import Path
 from lxml import etree
 
-WORK = Path("/home/dgun89/.claude-science/orgs/b775b206-ef44-477d-b8e7-a47020d337a1/workspaces/b721070f-708d-4613-b6ab-5b485695cf35")
-HMDB_XML = Path("/home/dgun89/repos/metabolite-study/data/reference/hmdb_metabolites.xml")
-OUT = WORK / "interim" / "hmdb_index.json"
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from pipeline import config as C
+
+HMDB_XML = C.HMDB_XML
+OUT = C.WORK / "interim" / "hmdb_index.json"
 NS = "{http://www.hmdb.ca}"
 
 
@@ -79,7 +81,11 @@ def main(target_inchikeys):
         ik_el = elem.find(f"{NS}inchikey")
         ik = ik_el.text if ik_el is not None else None
         if ik and ik in targets:
-            index[ik] = parse_metabolite(elem)
+            rec = parse_metabolite(elem)
+            rec["source"] = "HMDB"
+            rec["source_version"] = C.hmdb_version()
+            rec["retrieved_at"] = C.now_iso()
+            index[ik] = rec
         # 메모리 정리
         elem.clear()
         while elem.getprevious() is not None:
@@ -92,8 +98,6 @@ def main(target_inchikeys):
 
 
 if __name__ == "__main__":
-    import pandas as pd
-    h = pd.read_parquet(WORK / "interim" / "human" / "human_step2_coconut.parquet")
-    m = pd.read_parquet(WORK / "interim" / "mouse" / "mouse_step2_coconut.parquet")
-    iks = sorted(pd.concat([h["InChIKey"], m["InChIKey"]]).dropna().unique())
+    # 세 종(human/mouse/legacy) step2의 고유 InChIKey에 해당하는 HMDB 레코드만 인덱싱.
+    iks = C.all_inchikeys()
     main(iks)

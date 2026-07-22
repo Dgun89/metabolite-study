@@ -2,12 +2,14 @@
 5단계: 효소 정보 수집 (KEGG EC + Reactome catalyst). HMDB gene은 인덱스에서 조인.
 InChIKey 기반 캐시. kegg_id / chebi_id는 3단계 identifier_cache에서 가져옴.
 """
-import json, time, requests
+import sys, json, time, requests
 from pathlib import Path
 
-WORK = Path("/home/dgun89/.claude-science/orgs/b775b206-ef44-477d-b8e7-a47020d337a1/workspaces/b721070f-708d-4613-b6ab-5b485695cf35")
-ID_CACHE = WORK / "interim" / "identifier_cache.json"
-ENZ_CACHE = WORK / "interim" / "enzyme_cache.json"
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from pipeline import config as C
+
+ID_CACHE = C.WORK / "interim" / "identifier_cache.json"
+ENZ_CACHE = C.WORK / "interim" / "enzyme_cache.json"
 
 import threading as _th
 _local = _th.local()
@@ -85,10 +87,20 @@ def reactome_catalysts(chebi_id):
 def collect_one(ik, id_rec):
     kegg_id = id_rec.get("kegg_id")
     chebi_id = id_rec.get("chebi_id")
+    kegg = kegg_ec(kegg_id)
+    react = reactome_catalysts(chebi_id)
+    used = []
+    if kegg:
+        used.append("KEGG")
+    if react:
+        used.append("Reactome")
     return {
-        "InChIKey": ik,
-        "kegg_ec": kegg_ec(kegg_id),
-        "reactome_catalysts": reactome_catalysts(chebi_id),
+        "inchikey": ik, "InChIKey": ik,
+        "kegg_ec": kegg,
+        "reactome_catalysts": react,
+        "source": "+".join(used) if used else None,
+        "source_version": ";".join(C.SOURCE_VERSIONS[s] for s in used) if used else None,
+        "retrieved_at": C.now_iso(),
     }
 
 
@@ -129,7 +141,8 @@ def main_parallel(inchikeys, workers=6):
             try:
                 rec = fut.result()
             except Exception as e:
-                rec = {"InChIKey": ik, "kegg_ec": [], "reactome_catalysts": [], "error": str(e)[:100]}
+                rec = {"inchikey": ik, "InChIKey": ik, "kegg_ec": [], "reactome_catalysts": [],
+                       "error": str(e)[:100], "retrieved_at": C.now_iso()}
             with lock:
                 cache[ik] = rec; done[0] += 1
                 if done[0] % 25 == 0:
@@ -141,8 +154,5 @@ def main_parallel(inchikeys, workers=6):
 
 
 if __name__ == "__main__":
-    import pandas as pd
-    h = pd.read_parquet(WORK / "interim" / "human" / "human_step2_coconut.parquet")
-    m = pd.read_parquet(WORK / "interim" / "mouse" / "mouse_step2_coconut.parquet")
-    iks = sorted(pd.concat([h["InChIKey"], m["InChIKey"]]).dropna().unique())
+    iks = C.all_inchikeys()
     main_parallel(iks)

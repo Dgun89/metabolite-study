@@ -14,4 +14,7 @@ __pycache__/
 # 데이터 산출물 (재생성 가능, 용량)
 *.parquet
 *.tar.gz
-!data/mouse/reference/mmmdb_reference.parquet
+!data/mouse_serum/reference/mmmdb_reference.parquet
+
+# 파이프라인 작업 디렉터리 (재생성 가능한 캐시·중간 산출물)
+.work/

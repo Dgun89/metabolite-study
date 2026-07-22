@@ -1,25 +1,36 @@
 """
-8단계: legacy step29 신뢰성 비교 (공통 InChIKey 교집합).
+9단계: legacy 신뢰성 대조 (공통 InChIKey 교집합).
 
-새로 각 DB에서 독립 수집한 종별 최종 파일(final/{species}_final.xlsx)을
-legacy 최종 파일(metabolites_step29.xlsx)과 대조하여 legacy 신뢰성 검증.
-- 공통 InChIKey(full + skeleton) 교집합 추출
-- classification / identifier / enzyme 일치율 계산
-결과: final/comparison_report.md + interim/step8_legacy_comparison.png
+이 프로젝트의 핵심 세일즈포인트: 기존 legacy 산출물(metabolites_step29.xlsx, 902개
+수기 큐레이션 DB)을, 새 InChIKey 정규화 파이프라인으로 **처음부터 독립 재현**한
+legacy_final.xlsx와 대조해 legacy DB의 신뢰성을 재검증한다.
+
+대조 1 (핵심): reproduced legacy_final.xlsx  vs  기존 legacy/etc/metabolites_step29.xlsx
+대조 2 (종간): human/mouse_final.xlsx        vs  기존 step29
+
+각 대조에서:
+- 공통 InChIKey(full 27자 + skeleton 14자) 교집합 추출
+- classification / 외부 식별자 / 효소 플래그 일치율 계산
+
+결과: data/export/comparison_report.md + data/export/legacy_comparison.png
+경로는 config(이식성) 사용, 환경변수로 오버라이드 가능.
 """
-import re, glob
+import sys, re, glob
 from pathlib import Path
 import pandas as pd
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from pipeline import config as C
 
 pat = re.compile(r"^[A-Z]{14}-[A-Z]{10}-[A-Z]$")
 
 def find_legacy():
     for p in ["legacy/etc/metabolites_step29.xlsx", "legacy/data/metabolites_step29.xlsx",
               "legacy/final/metabolites_step29.xlsx"]:
-        fp = Path("/home/dgun89/repos/metabolite-study") / p
+        fp = C.BASE / p
         if fp.exists():
             return str(fp)
-    hits = glob.glob("/home/dgun89/repos/metabolite-study/**/*step29*.xlsx", recursive=True)
+    hits = glob.glob(str(C.BASE / "**" / "*step29*.xlsx"), recursive=True)
     return hits[0] if hits else None
 
 def clean_ik(series):
@@ -71,13 +82,91 @@ def compare(new_df, leg_df, key="ik"):
         enz[c] = sum(has_val(nu.loc[s, c]) == has_val(lu.loc[s, c]) for s in common)
     return dict(n=n, cls=cls, ids=ids, enz=enz)
 
-if __name__ == "__main__":
+def _pct(a, b):
+    return f"{a}/{b} ({a/b*100:.1f}%)" if b else f"{a}/{b} (n/a)"
+
+
+def run():
     lp = find_legacy()
     assert lp, "legacy step29 xlsx not found under legacy/{etc,data,final}/"
     leg = load_valid(lp)
-    for sp in ["human", "mouse"]:
-        new = load_valid(f"final/{sp}_final.xlsx", sheet="Sheet1")
-        for key, name in [("ik", "full"), ("sk", "skeleton")]:
-            r = compare(new, leg, key)
-            print(f"{sp} {name}: n={r['n']} cls={r['cls']}/{r['n']} "
-                  f"ids={r['ids']} enz={r['enz']}")
+    export = C.EXPORT_DIR
+
+    # 대조 대상: reproduced mouse_feces(핵심 — 구 legacy) + human/mouse_serum(종간)
+    targets = [("mouse_feces", "재현 mouse_feces(쥐 분변) vs 기존 step29 (핵심 신뢰성 검증)"),
+               ("human", "human vs 기존 step29"),
+               ("mouse_serum", "mouse_serum(쥐 혈청) vs 기존 step29")]
+
+    results = {}
+    for sp, _desc in targets:
+        fp = export / f"{sp}_final.xlsx"
+        if not fp.exists():
+            print(f"  [skip] {fp} 없음")
+            continue
+        new = load_valid(str(fp), sheet="Sheet1")
+        results[sp] = {name: compare(new, leg, key)
+                       for key, name in [("ik", "full"), ("sk", "skeleton")]}
+        for name in ("full", "skeleton"):
+            r = results[sp][name]
+            print(f"{sp} {name}: n={r['n']} cls={_pct(r['cls'], r['n'])}")
+
+    # ---------- 리포트 ----------
+    lines = ["# Legacy 신뢰성 대조 리포트", "",
+             f"- 기준(baseline): `{Path(lp).relative_to(C.BASE)}` — 기존 수기 큐레이션 DB",
+             f"- 대조(reproduced): `data/export/{{species}}_final.xlsx` — 새 InChIKey 정규화 파이프라인 재현",
+             f"- 대조 축: 공통 InChIKey 교집합 (full 27자 / skeleton 14자)", "",
+             "분류 라벨(endogenous/exogenous/unverified) 일치율과 외부 식별자·효소 커버리지 일치를 계산한다.",
+             ""]
+    for sp, desc in targets:
+        if sp not in results:
+            continue
+        lines += [f"## {sp} — {desc}", ""]
+        for name in ("full", "skeleton"):
+            r = results[sp][name]
+            lines += [f"### InChIKey {name} 교집합 (n={r['n']})", "",
+                      f"- **classification 일치**: {_pct(r['cls'], r['n'])}", "",
+                      "| 외부 ID | 양쪽 보유 | 값 일치 |", "|---|---|---|"]
+            for c, (both, va) in r["ids"].items():
+                lines.append(f"| {c} | {both} | {_pct(va, both)} |")
+            lines += ["", "| 효소 소스 | 유무 플래그 일치 |", "|---|---|"]
+            for c, v in r["enz"].items():
+                lines.append(f"| {c} | {_pct(v, r['n'])} |")
+            lines.append("")
+
+    report = export / "comparison_report.md"
+    export.mkdir(parents=True, exist_ok=True)
+    report.write_text("\n".join(lines), encoding="utf-8")
+    print(f"\n리포트 → {report.relative_to(C.BASE)}")
+
+    # ---------- 그림 ----------
+    try:
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+        sps = [sp for sp, _ in targets if sp in results]
+        fig, ax = plt.subplots(figsize=(7, 4.2))
+        x = range(len(sps))
+        cls_full = [results[sp]["full"]["cls"] / results[sp]["full"]["n"] * 100
+                    if results[sp]["full"]["n"] else 0 for sp in sps]
+        n_full = [results[sp]["full"]["n"] for sp in sps]
+        bars = ax.bar(x, cls_full, color=["#2c7fb8", "#7fcdbb", "#c7e9b4"][:len(sps)])
+        ax.set_xticks(list(x))
+        ax.set_xticklabels([f"{sp}\n(n={n})" for sp, n in zip(sps, n_full)])
+        ax.set_ylabel("classification agreement (%)")
+        ax.set_ylim(0, 105)
+        ax.set_title("Legacy reliability: reproduced vs step29 baseline\n(full InChIKey intersection)")
+        for b, v in zip(bars, cls_full):
+            ax.text(b.get_x() + b.get_width() / 2, v + 1.5, f"{v:.1f}%",
+                    ha="center", va="bottom", fontsize=10)
+        fig.tight_layout()
+        figp = export / "legacy_comparison.png"
+        fig.savefig(figp, dpi=150)
+        print(f"그림 → {figp.relative_to(C.BASE)}")
+    except Exception as e:
+        print(f"  [그림 생략] {e}")
+
+    return results
+
+
+if __name__ == "__main__":
+    run()

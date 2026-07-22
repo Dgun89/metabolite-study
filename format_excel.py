@@ -4,14 +4,19 @@ from datetime import date
 
 GROUPS = {
     "Basic Identifiers": {
-        "columns": ["Database ID", "compound_name", "InChIKey", "SMILES"],
+        "columns": ["InChIKey", "compound_name", "coconut_ids", "SMILES"],
         "color": "BDD7EE",
-        "description": "Core compound identifiers"
+        "description": "Core compound identifiers (primary key = InChIKey)"
+    },
+    "Dataset Membership": {
+        "columns": ["datasets"],
+        "color": "D6DCE4",
+        "description": "Which source datasets this compound appears in (combined view only)"
     },
     "External DB IDs": {
-        "columns": ["PubChem", "KEGG", "HMDB", "ChEBI"],
+        "columns": ["PubChem", "KEGG", "HMDB", "ChEBI", "DrugBank", "FooDB", "LIPID MAPS"],
         "color": "C6EFCE",
-        "description": "Cross-reference IDs from external databases"
+        "description": "Cross-reference IDs from external databases (UniChem-resolved)"
     },
     "Classification": {
         "columns": ["classification"],
@@ -28,6 +33,16 @@ GROUPS = {
         "color": "E4DFEC",
         "description": "Match method and reasoning behind classification"
     },
+    "Identification Confidence": {
+        "columns": ["msi_level", "msi_evidence", "mmmdb_detected", "mmmdb_tissues"],
+        "color": "FCE4D6",
+        "description": "MSI identification confidence level and MMMDB (mouse tissue) evidence"
+    },
+    "Classification Conflicts": {
+        "columns": ["conflict_flag", "conflicting_sources"],
+        "color": "F8CBAD",
+        "description": "Whether sources disagree on origin, and which verdicts conflict"
+    },
     "Enzyme Information": {
         "columns": ["kegg_enzymes", "hmdb_enzymes", "reactome_catalysts", "brenda_enzymes"],
         "color": "DAEEF3",
@@ -36,20 +51,30 @@ GROUPS = {
 }
 
 COL_SOURCE = {
-    "Database ID"          : "COCONUT",
+    "InChIKey"             : "COCONUT",
     "compound_name"        : "COCONUT",
-    "InChIKey"             : "PubChem",
-    "SMILES"               : "PubChem",
+    "coconut_ids"          : "COCONUT",
+    "datasets"             : "pipeline",
+    "SMILES"               : "COCONUT",
     "PubChem"              : "PubChem",
     "KEGG"                 : "KEGG",
     "HMDB"                 : "HMDB",
     "ChEBI"                : "ChEBI",
-    "classification"       : "ChEBI + HMDB + COCONUT",
+    "DrugBank"             : "UniChem",
+    "FooDB"                : "UniChem",
+    "LIPID MAPS"           : "UniChem",
+    "classification"       : "ChEBI + HMDB + COCONUT + MMMDB",
     "hmdb_origin"          : "HMDB",
     "coconut_organisms"    : "COCONUT",
     "chebi_roles"          : "ChEBI",
     "coconut_match_key"    : "COCONUT",
-    "classification_basis" : "ChEBI + COCONUT",
+    "classification_basis" : "ChEBI + COCONUT + MMMDB",
+    "msi_level"            : "pipeline",
+    "msi_evidence"         : "pipeline",
+    "mmmdb_detected"       : "MMMDB",
+    "mmmdb_tissues"        : "MMMDB",
+    "conflict_flag"        : "ChEBI + HMDB + COCONUT",
+    "conflicting_sources"  : "ChEBI + HMDB + COCONUT",
     "kegg_enzymes"         : "KEGG",
     "hmdb_enzymes"         : "HMDB",
     "reactome_catalysts"   : "Reactome",
@@ -57,20 +82,30 @@ COL_SOURCE = {
 }
 
 COL_DESC = {
-    "Database ID"          : "COCONUT compound ID",
+    "InChIKey"             : "Chemical structure key (27-char) — primary key for all joins/merges/sorting",
     "compound_name"        : "Compound name",
-    "InChIKey"             : "Chemical structure key (27-char)",
+    "coconut_ids"          : "COCONUT compound ID(s) mapped to this InChIKey (display reference; semicolon-separated)",
+    "datasets"             : "Source datasets this compound appears in (human / mouse_serum / mouse_feces; semicolon-separated)",
     "SMILES"               : "Chemical structure in text format",
     "PubChem"              : "PubChem Compound ID (CID)",
     "KEGG"                 : "KEGG Compound ID",
     "HMDB"                 : "Human Metabolome Database ID",
     "ChEBI"                : "Chemical Entities of Biological Interest ID",
-    "classification"       : "Final classification: endogenous / exogenous / unverified",  # compound_origin 변경
+    "DrugBank"             : "DrugBank ID (cross-linked via UniChem)",
+    "FooDB"                : "FooDB ID (cross-linked via UniChem)",
+    "LIPID MAPS"           : "LIPID MAPS ID (cross-linked via UniChem)",
+    "classification"       : "Final classification: endogenous / exogenous / unverified",
     "hmdb_origin"          : "HMDB origin field (Endogenous / Food / Drug etc.)",
     "coconut_organisms"    : "Organisms associated with compound in COCONUT (used to infer classification)",
-    "chebi_roles"          : "Role classification from ChEBI (semicolon-separated)",        # 신규
-    "coconut_match_key"    : "COCONUT match method: inchikey / inchikey_skeleton / cnp_id",
-    "classification_basis" : "Reason behind classification (e.g. COCONUT: Homo sapiens / ChEBI: human metabolite)",  # origin_evidence 변경
+    "chebi_roles"          : "Role classification from ChEBI (semicolon-separated)",
+    "coconut_match_key"    : "Structure-based join axis (InChIKey)",
+    "classification_basis" : "Reason behind classification (e.g. MMMDB: detected in mouse tissue / ChEBI: human metabolite)",
+    "msi_level"            : "MSI identification confidence: L2 probable / L3 tentative / L4 formula-only / L5 unknown",
+    "msi_evidence"         : "Evidence supporting the MSI level (InChIKey + independent DB cross-references)",
+    "mmmdb_detected"       : "True if compound detected in real mouse tissue (MMMDB, InChIKey match)",
+    "mmmdb_tissues"        : "Mouse tissues where compound was detected in MMMDB (semicolon-separated)",
+    "conflict_flag"        : "True if sources disagree on endogenous vs exogenous origin",
+    "conflicting_sources"  : "Per-source verdicts when they conflict (e.g. COCONUT=endogenous;ChEBI=exogenous)",
     "kegg_enzymes"         : "EC numbers from KEGG (semicolon-separated)",
     "hmdb_enzymes"         : "Enzyme gene names from HMDB (semicolon-separated)",
     "reactome_catalysts"   : "Catalyst activity names from Reactome",

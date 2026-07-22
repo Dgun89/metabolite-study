@@ -6,8 +6,10 @@ UniChem(xref 한 번에) + ChEBI detail(roles, KEGG/HMDB accession) + PubChem(CI
 import sys, json, time, requests
 from pathlib import Path
 
-WORK = Path("/home/dgun89/.claude-science/orgs/b775b206-ef44-477d-b8e7-a47020d337a1/workspaces/b721070f-708d-4613-b6ab-5b485695cf35")
-CACHE = WORK / "interim" / "identifier_cache.json"
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from pipeline import config as C
+
+CACHE = C.WORK / "interim" / "identifier_cache.json"
 import threading as _th
 _local = _th.local()
 
@@ -107,7 +109,8 @@ def pubchem_cid(ik):
 
 
 def collect_one(ik):
-    rec = {"InChIKey": ik}
+    # inchikey(소문자) 표준 컬럼 + InChIKey 하위호환 별칭 둘 다 기록
+    rec = {"inchikey": ik, "InChIKey": ik}
     src = unichem_sources(ik)
     rec["unichem"] = src
     rec["hmdb_id"] = src.get("hmdb")
@@ -128,6 +131,15 @@ def collect_one(ik):
     # PubChem CID 폴백
     if not rec["pubchem_cid"]:
         rec["pubchem_cid"] = pubchem_cid(ik)
+    # provenance: 어떤 소스들에서 언제 수집했는지
+    used = ["UniChem"]
+    if rec.get("chebi_id"):
+        used.append("ChEBI")
+    if rec.get("pubchem_cid"):
+        used.append("PubChem")
+    rec["source"] = "+".join(used)
+    rec["source_version"] = ";".join(C.SOURCE_VERSIONS[s] for s in used)
+    rec["retrieved_at"] = C.now_iso()
     return rec
 
 
@@ -166,7 +178,8 @@ def main_parallel(inchikeys, workers=6):
             try:
                 rec = fut.result()
             except Exception as e:
-                rec = {"InChIKey": ik, "error": str(e)[:100]}
+                rec = {"inchikey": ik, "InChIKey": ik, "error": str(e)[:100],
+                       "retrieved_at": C.now_iso()}
             with lock:
                 cache[ik] = rec
                 done[0] += 1
@@ -179,10 +192,8 @@ def main_parallel(inchikeys, workers=6):
 
 
 if __name__ == "__main__":
-    import pandas as pd
-    h = pd.read_parquet(WORK / "interim" / "human" / "human_step2_coconut.parquet")
-    m = pd.read_parquet(WORK / "interim" / "mouse" / "mouse_step2_coconut.parquet")
-    iks = sorted(pd.concat([h["InChIKey"], m["InChIKey"]]).dropna().unique())
+    # 세 종(human/mouse/legacy) step2의 고유 InChIKey를 한 번에 수집(캐시 공유).
+    iks = C.all_inchikeys()
     mode = sys.argv[1] if len(sys.argv) > 1 else "parallel"
     if mode == "parallel":
         main_parallel(iks)
