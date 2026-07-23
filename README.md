@@ -52,6 +52,20 @@ Code is species-agnostic; the dataset is selected by `config.get_paths(species)`
 7. **`export_view.py`** — build the wide human-readable view and write the 4-sheet xlsx (Data / Legend / Summary / Classification Rules) via `format_excel.py`, with color-grouped column headers and clickable DB-homepage links on the External DB ID headers (COCONUT…LIPID MAPS).
 8. **`compare_legacy.py`** — reliability comparison against the original step29 DB on the common InChIKey intersection.
 
+### Reproducing the deterministic stages (normalize → export)
+
+The collection stages (COCONUT join, UniChem/HMDB/BRENDA) need large reference files and network access, so their outputs are cached under `.work/interim/` (gitignored). The **deterministic** downstream — `04_classify_run.py → normalize.py → export_view.py` — can be re-run from those caches alone, with no network:
+
+```bash
+export PYTHONPATH=.
+python pipeline/04_classify_run.py   # optional: re-derive classification from step2 + caches
+python pipeline/normalize.py         # rebuild data/normalized/*.parquet
+python pipeline/export_view.py        # rebuild data/export/*.xlsx
+python verify_reproduction.py         # compare against REPRODUCE_reference_fingerprints.json
+```
+
+`verify_reproduction.py` compares row counts and a sort-invariant SHA-256 of each normalized table against the committed baseline (`REPRODUCE_reference_fingerprints.json`), so a match confirms byte-identical **data** regardless of xlsx formatting/timestamps. The cache bundle needed to seed `.work/interim/` is distributed out-of-band (not in git).
+
 ### Exports (`data/export/*.xlsx`)
 
 Per-dataset and combined workbooks, InChIKey-first column layout, headers color-grouped by category (Basic Identifiers / Dataset Membership / External DB IDs / Classification / Classification Sources / Classification Metadata / DB Support / Classification Conflicts / Enzyme Information). The External DB ID headers (COCONUT, PubChem, KEGG, HMDB, ChEBI, DrugBank, FooDB, LIPID MAPS) are clickable links to each database's homepage. A dedicated **Classification Rules** sheet documents the endogenous-dominant priority order (E0>E1>E2>E3>X1>X2>X3>U) and how `conflict_flag`/`conflicting_sources` are derived.
@@ -185,6 +199,20 @@ metabolite-study/
 6. **`normalize.py`** — 6개 long-format 정규화 테이블 조립; `classify_row_v3`로 분류 재계산, DB 지지 등급 부여(`db_support_level`/`db_support_evidence`; 구조 합의 프록시, 분광 MSI 아님), UniChem 교차링크·MMMDB 조직 기원 병합. 명시적 행정렬: 분류(endo→exo→unverified) → compound_name → inchikey.
 7. **`export_view.py`** — 넓은 형태 뷰 생성, `format_excel.py`로 4시트 xlsx(Data / Legend / Summary / Classification Rules) 작성, 컬럼 헤더 색상 그룹화 + External DB ID 헤더(COCONUT…LIPID MAPS)에 DB 홈페이지 클릭 링크.
 8. **`compare_legacy.py`** — 기존 step29 DB와 공통 InChIKey 교집합에서 신뢰성 대조.
+
+### 결정론적 단계 재현 (normalize → export)
+
+수집 단계(COCONUT 조인, UniChem/HMDB/BRENDA)는 대용량 참조 파일과 네트워크가 필요해 그 산출물을 `.work/interim/`에 캐시로 둔다(gitignore). **결정론적** 하위 단계 — `04_classify_run.py → normalize.py → export_view.py` — 는 그 캐시만으로 네트워크 없이 재실행할 수 있다:
+
+```bash
+export PYTHONPATH=.
+python pipeline/04_classify_run.py   # (선택) step2 + 캐시로 분류 재산출
+python pipeline/normalize.py         # data/normalized/*.parquet 재생성
+python pipeline/export_view.py        # data/export/*.xlsx 재생성
+python verify_reproduction.py         # REPRODUCE_reference_fingerprints.json 과 대조
+```
+
+`verify_reproduction.py`는 각 정규화 테이블의 행수와 정렬 불변 SHA-256을 커밋된 기준선(`REPRODUCE_reference_fingerprints.json`)과 비교하므로, 일치하면 xlsx 서식·타임스탬프와 무관하게 **데이터**가 바이트 단위로 동일함을 확인한다. `.work/interim/`을 채울 캐시 번들은 git이 아닌 별도 경로로 배포한다.
 
 ### Export (`data/export/*.xlsx`)
 

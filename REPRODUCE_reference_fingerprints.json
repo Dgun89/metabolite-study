@@ -1,0 +1,32 @@
+{
+  "compound_classification": {
+    "rows": 1721,
+    "ncols": 9,
+    "sha256": "387aea16f157100a3fffb311d4ac665904e49cd133f78a07cffad204200f8a84"
+  },
+  "compound_enzymes": {
+    "rows": 6592,
+    "ncols": 6,
+    "sha256": "28bbec06fcd80d9cc3af912e4aaebb1386a9112147f0d359f64f460a1fb03959"
+  },
+  "compound_external_ids": {
+    "rows": 8092,
+    "ncols": 5,
+    "sha256": "f0389ef7332ec5b3b5406c45ccfd870b9e5bd7065b575dc65f28c3809ba858a3"
+  },
+  "compound_origins": {
+    "rows": 23278,
+    "ncols": 5,
+    "sha256": "d0acd26ca84186c0e04a50839ae026948a7451573e4e314d036cf8e9673c3378"
+  },
+  "compound_species": {
+    "rows": 1930,
+    "ncols": 6,
+    "sha256": "c3f2fd48c697faa4f6724ddd2448066a05ba0c7d519398cb9de74a955aa7d1a5"
+  },
+  "compounds": {
+    "rows": 1721,
+    "ncols": 11,
+    "sha256": "eb2e7e2daa117d3a4710780778c3536c0a12bec4291d5f7495e376cc88348ed5"
+  }
+}
