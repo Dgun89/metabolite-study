@@ -22,10 +22,22 @@ REF = os.path.join(BASE, "REPRODUCE_reference_fingerprints.json")
 # 실행시각에 찍히는 휘발성 컬럼 — 내용 해시에서 제외
 VOLATILE_COLS = {"created_at", "classified_at", "retrieved_at"}
 
+def _canon(v):
+    """플랫폼·pandas 버전 독립적인 스칼라 문자열화. 결측은 모두 빈 문자열."""
+    if v is None or v is pd.NA:
+        return ""
+    if isinstance(v, float) and pd.isna(v):
+        return ""
+    return str(v)
+
 def fp(df):
+    """행수 + 내용 sha256. to_csv(줄바꿈이 OS마다 \\n vs \\r\\n) 대신
+    명시적 구분자로 직렬화해 플랫폼 독립적으로 만든다."""
     cols = [c for c in df.columns if c not in VOLATILE_COLS]
-    d = df[cols].sort_values(cols).reset_index(drop=True)
-    return len(df), hashlib.sha256(d.to_csv(index=False).encode()).hexdigest()
+    d = df[cols].sort_values(cols, kind="stable").reset_index(drop=True)
+    US, RS = "\x1f", "\x1e"          # unit / record separator (데이터에 없는 제어문자)
+    blob = RS.join(US.join(_canon(v) for v in row) for row in d.itertuples(index=False))
+    return len(df), hashlib.sha256(blob.encode("utf-8")).hexdigest()
 
 ref = json.load(open(REF, encoding="utf-8"))
 ok = True
