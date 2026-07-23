@@ -1,32 +1,26 @@
 {
   "compound_classification": {
     "rows": 1721,
-    "ncols": 9,
-    "sha256": "387aea16f157100a3fffb311d4ac665904e49cd133f78a07cffad204200f8a84"
+    "sha256": "21062091164dba61768f132ac2140e839cc8cc4f631ac59283f88cfb2939233a"
   },
   "compound_enzymes": {
     "rows": 6592,
-    "ncols": 6,
-    "sha256": "28bbec06fcd80d9cc3af912e4aaebb1386a9112147f0d359f64f460a1fb03959"
+    "sha256": "d333338907b8d3293b176ebdbb435f3ad98f0ac4da98e0f40e40e66a6e421c0e"
   },
   "compound_external_ids": {
     "rows": 8092,
-    "ncols": 5,
-    "sha256": "f0389ef7332ec5b3b5406c45ccfd870b9e5bd7065b575dc65f28c3809ba858a3"
+    "sha256": "ae7ae53e0bc2d8173a2b636a9f37e8c331512e310452808bb51bb9dc5ffebc4c"
   },
   "compound_origins": {
     "rows": 23278,
-    "ncols": 5,
-    "sha256": "d0acd26ca84186c0e04a50839ae026948a7451573e4e314d036cf8e9673c3378"
+    "sha256": "03c08818d30039d2e19187a870fc27cba24ec52ad976a848bb417b4e6b37a49c"
   },
   "compound_species": {
     "rows": 1930,
-    "ncols": 6,
-    "sha256": "c3f2fd48c697faa4f6724ddd2448066a05ba0c7d519398cb9de74a955aa7d1a5"
+    "sha256": "b073c23b1544c69c20a7381cacf6b131bec2b163644a4062c5f22a7a39b9c3fa"
   },
   "compounds": {
     "rows": 1721,
-    "ncols": 11,
-    "sha256": "eb2e7e2daa117d3a4710780778c3536c0a12bec4291d5f7495e376cc88348ed5"
+    "sha256": "9dbae3608d204da48f85127201ed1ca5125c5b4a8ba64c40266b9d63653a98ed"
   }
 }

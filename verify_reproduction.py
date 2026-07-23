@@ -8,6 +8,10 @@
 
 기준 지문(REPRODUCE_reference_fingerprints.json)은 Ubuntu에서 생성한 것.
 행수 + 정렬 후 내용 sha256이 모두 일치하면 재현 성공.
+
+주의: created_at/classified_at/retrieved_at 은 파이프라인을 "언제 재실행했는가"를
+기록하는 provenance 타임스탬프라 실행마다 값이 바뀐다. 데이터 재현성과 무관하므로
+내용 해시에서 제외한다(VOLATILE_COLS). source_version 등 안정적 provenance는 유지.
 """
 import pandas as pd, hashlib, json, glob, os, sys
 
@@ -15,8 +19,12 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 NORM = os.path.join(BASE, "data", "normalized")
 REF = os.path.join(BASE, "REPRODUCE_reference_fingerprints.json")
 
+# 실행시각에 찍히는 휘발성 컬럼 — 내용 해시에서 제외
+VOLATILE_COLS = {"created_at", "classified_at", "retrieved_at"}
+
 def fp(df):
-    d = df.sort_values(list(df.columns)).reset_index(drop=True)
+    cols = [c for c in df.columns if c not in VOLATILE_COLS]
+    d = df[cols].sort_values(cols).reset_index(drop=True)
     return len(df), hashlib.sha256(d.to_csv(index=False).encode()).hexdigest()
 
 ref = json.load(open(REF, encoding="utf-8"))
