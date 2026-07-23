@@ -128,10 +128,19 @@ def normalize() -> dict:
     comp["created_at"] = now
 
     # ---------- compound_species (long) ----------
-    species_rows = (all_rows[["inchikey", "species", "cnp_id"]]
-                    .drop_duplicates()
-                    .assign(source="pipeline-seed", source_version="seed-v1", retrieved_at=now)
-                    .reset_index(drop=True))
+    # 무결성: (inchikey, species)는 유일해야 한다. 같은 화합물의 CNP id 버전
+    # (예: CNP0361197.0 / CNP0361197.1)은 InChIKey 기준 동일 관측이므로,
+    # cnp_id를 "; "로 병합해 한 행으로 접는다(다른 provenance 컬럼과 동일 방식).
+    _sp = all_rows[["inchikey", "species", "cnp_id"]].copy()
+    _sp["cnp_id"] = _sp["cnp_id"].where(_sp["cnp_id"].notna(), None)
+    species_rows = (
+        _sp.groupby(["inchikey", "species"], sort=False)["cnp_id"]
+        .apply(lambda s: "; ".join(sorted({str(x) for x in s if x is not None
+                                           and str(x).strip()
+                                           and str(x).lower() not in ("nan", "none")})))
+        .reset_index()
+        .assign(source="pipeline-seed", source_version="seed-v1", retrieved_at=now)
+        .reset_index(drop=True))
 
     # ---------- compound_external_ids (long) ----------
     ext = []
@@ -273,8 +282,11 @@ def normalize() -> dict:
         mm_nt.append(int(n_tis) if detected else 0)
     comp["mmmdb_detected"] = mm_flag
     comp["mmmdb_n_tissues"] = mm_nt
-    comp["msi_level"] = msi_level
-    comp["msi_evidence"] = msi_evi
+    # db_support_level: 독립 DB가 이 구조를 지지하는 정도(structure-consensus proxy).
+    # 표준 MSI(분광 확증)가 아니라 다중 DB 구조 합의 기반이므로 중립적 이름을 쓴다.
+    #   L2 = 독립 DB ID >=2, L3 = <=1 (assign_msi 규칙 유지).
+    comp["db_support_level"] = msi_level
+    comp["db_support_evidence"] = msi_evi
 
     # ---------- 명시적 행 정렬 ----------
     # 분류(endogenous→exogenous→unverified) → 화합물명(대소문자 무시) → InChIKey.

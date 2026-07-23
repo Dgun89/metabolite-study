@@ -89,9 +89,10 @@ def build_wide(tables: dict, inchikeys, with_datasets: bool = False) -> pd.DataF
     # --- Basic Identifiers: InChIKey를 기본키로 맨 앞에 배치 ---
     out["InChIKey"]      = base["inchikey"].values
     out["compound_name"] = base["compound_name"].values
-    out["coconut_ids"]   = m(cnp)   # (구 "Database ID") 이 InChIKey에 매핑된 COCONUT CNP id(들) — 표시용 참조
     out["SMILES"]        = base["smiles"].fillna("").values
-    # --- External DB IDs ---
+    # --- External DB IDs (COCONUT CNP id는 다른 외부 DB 식별자와 동일 성격이므로
+    #     이 블록의 맨 앞에 배치: COCONUT이 모든 화합물의 시드 출처 DB) ---
+    out["COCONUT"]       = m(cnp)   # (구 "Database ID"/"coconut_ids") 이 InChIKey에 매핑된 COCONUT CNP id(들)
     out["PubChem"]       = m(ext_val("PubChem"))
     out["KEGG"]          = m(ext_val("KEGG"))
     out["HMDB"]          = m(ext_val("HMDB"))
@@ -104,11 +105,10 @@ def build_wide(tables: dict, inchikeys, with_datasets: bool = False) -> pd.DataF
     out["hmdb_origin"]          = m(ori_val("HMDB"))
     out["coconut_organisms"]    = m(ori_val("COCONUT"))
     out["chebi_roles"]          = m(ori_val("ChEBI"))
-    out["coconut_match_key"]    = "InChIKey"  # 새 스키마: 구조 기반 조인 축
     out["classification_basis"] = base["inchikey"].map(cls_i["basis"]).fillna("").values
-    # --- Identification Confidence (MSI + MMMDB) ---
-    out["msi_level"]        = base["inchikey"].map(comp_i["msi_level"]).fillna("").values
-    out["msi_evidence"]     = base["inchikey"].map(comp_i["msi_evidence"]).fillna("").values
+    # --- DB Support (structure-consensus proxy, not spectral MSI) + MMMDB ---
+    out["db_support_level"]    = base["inchikey"].map(comp_i["db_support_level"]).fillna("").values
+    out["db_support_evidence"] = base["inchikey"].map(comp_i["db_support_evidence"]).fillna("").values
     out["mmmdb_detected"]   = base["inchikey"].map(comp_i["mmmdb_detected"]).fillna(False).values
     out["mmmdb_tissues"]    = m(ori_val("MMMDB"))
     # --- Enzyme Information ---
