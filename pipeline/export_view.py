@@ -75,6 +75,16 @@ def build_wide(tables: dict, inchikeys, with_datasets: bool = False) -> pd.DataF
         sub = ori[ori["inchikey"].isin(iks)]
         return _agg(sub, "inchikey", "origin_label", where=sub["source"] == src)
 
+    def ori_category(src):
+        """해당 소스의 origin_category(6버킷 roll-up) 고유값을 모아 반환.
+        평평한 origin_label 대신 최상위 버킷만 보여줘 뷰에서 기원 유형을 한눈에.
+        """
+        sub = ori[ori["inchikey"].isin(iks)]
+        if "origin_category" not in sub.columns:
+            return _agg(sub.iloc[0:0], "inchikey", "origin_label")
+        mask = (sub["source"] == src) & sub["origin_category"].notna()
+        return _agg(sub[mask], "inchikey", "origin_category")
+
     def enz_val(src, col):
         sub = enz[enz["inchikey"].isin(iks)]
         return _agg(sub, "inchikey", col, where=sub["enzyme_source"] == src)
@@ -103,6 +113,9 @@ def build_wide(tables: dict, inchikeys, with_datasets: bool = False) -> pd.DataF
     # --- Classification ---
     out["classification"]       = base["inchikey"].map(cls_i["classification"]).fillna("unverified").values
     out["hmdb_origin"]          = m(ori_val("HMDB"))
+    # HMDB 기원을 6개 최상위 버킷으로 roll-up(Endogenous/Food/Biological/…) —
+    # 종명까지 뭉친 hmdb_origin과 달리 기원 '유형'을 한눈에 보게 하는 요약 컬럼.
+    out["hmdb_origin_category"] = m(ori_category("HMDB"))
     out["coconut_organisms"]    = m(ori_val("COCONUT"))
     out["chebi_roles"]          = m(ori_val("ChEBI"))
     out["classification_basis"] = base["inchikey"].map(cls_i["basis"]).fillna("").values

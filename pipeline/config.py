@@ -23,6 +23,9 @@ WORK = Path(os.environ.get("METABO_WORK", BASE / ".work"))
 REF = BASE / "data" / "reference"
 COCONUT_CSV = REF / "coconut_complete.csv"
 HMDB_XML = REF / "hmdb_metabolites.xml"
+# HMDB 'Disposition > Source' 서브트리 계층 맵(build_source_hierarchy.py 생성).
+# normalize.py가 HMDB 기원 라벨을 6개 최상위 버킷으로 roll-up 주석할 때 참조.
+HMDB_SOURCE_HIERARCHY = REF / "hmdb_source_hierarchy.json"
 
 # 본체(정규화 테이블)와 export(xlsx 뷰) — 저장소 tree 안(gitignore로 데이터는 제외).
 NORMALIZED_DIR = BASE / "data" / "normalized"

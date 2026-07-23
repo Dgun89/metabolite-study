@@ -28,7 +28,7 @@ Primary key throughout is `inchikey` (full 27-char); `inchikey14` (14-char skele
 |---|---|---|---|
 | `compounds` | 1,721 | one per unique InChIKey | inchikey, inchikey14, smiles, inchi, formula, compound_name, db_support_level, db_support_evidence, mmmdb_detected, mmmdb_n_tissues |
 | `compound_external_ids` | 8,092 | one per (compound, DB, id) | inchikey, source, external_id, + provenance |
-| `compound_origins` | 23,278 | one per (compound, origin fact) | inchikey, source, origin_label, + provenance |
+| `compound_origins` | 23,278 | one per (compound, origin fact) | inchikey, source, origin_label, origin_category, origin_level, + provenance |
 | `compound_classification` | 1,721 | one verdict per compound | inchikey, classification, classification_basis, conflict_flag, conflicting_sources, source_verdicts, + ruleset provenance |
 | `compound_enzymes` | 6,592 | one per (compound, EC) | inchikey, ec, source, + provenance |
 | `compound_species` | 1,930 | one per (compound, dataset) | inchikey, species ∈ {human, mouse_serum, mouse_feces}, cnp_id |
@@ -142,6 +142,15 @@ metabolite-study/
 
 ### Progress log
 
+- **2026-07-23** — HMDB Source subtree + origin categorization:
+  - profiled the full 6.1 GB `hmdb_metabolites.xml` (217,920 records) by streaming parse — see `docs/HMDB_structure_guide.md`
+  - established that HMDB `Disposition > Source` is **not** an endo/exo dichotomy: 6 sibling labels (Food 146,742 / Endogenous 145,377 / Biological 144,377 / Synthetic 193 / Environmental 162 / **Exogenous 6**); 93% of source-tagged compounds carry 3 labels at once (Biological & Endogenous & Food, 139,977)
+  - new `pipeline/build_source_hierarchy.py` → `data/reference/hmdb_source_hierarchy.json` (457-term roll-up map, term → one of 6 top buckets + tree level)
+  - `normalize.py` now annotates each `compound_origins` row with `origin_category` (6-bucket roll-up) and `origin_level` (tree depth); backward-compatible (added columns only)
+  - `export_view.py` adds a `hmdb_origin_category` summary column (buckets only, distinct from the species-level `hmdb_origin`)
+  - reproduction baseline: `compound_origins` fingerprint updated for the new columns (other tables untouched)
+  - **known issue**: `compounds` fingerprint DIFFERs against the committed baseline even on a clean checkout (predates this change; `.work/interim/` cache drifted from the fingerprint-generation state) — to be investigated separately, not masked by regenerating the baseline
+
 - **2026-07-22** — InChIKey normalization refactor:
   - primary key COCONUT CNP id → **InChIKey**; 6 long-format normalized tables with per-row provenance
   - COCONUT join 100% InChIKey coverage (human 316 / mouse_serum 717 / mouse_feces 902 seeds)
@@ -176,7 +185,7 @@ metabolite-study/
 |---|---|---|---|
 | `compounds` | 1,721 | 고유 InChIKey 1개 | inchikey, inchikey14, smiles, inchi, formula, compound_name, db_support_level, db_support_evidence, mmmdb_detected, mmmdb_n_tissues |
 | `compound_external_ids` | 8,092 | (화합물, DB, id) 1개 | inchikey, source, external_id, + provenance |
-| `compound_origins` | 23,278 | (화합물, 기원 사실) 1개 | inchikey, source, origin_label, + provenance |
+| `compound_origins` | 23,278 | (화합물, 기원 사실) 1개 | inchikey, source, origin_label, origin_category, origin_level, + provenance |
 | `compound_classification` | 1,721 | 화합물당 판정 1개 | inchikey, classification, classification_basis, conflict_flag, conflicting_sources, source_verdicts, + ruleset provenance |
 | `compound_enzymes` | 6,592 | (화합물, EC) 1개 | inchikey, ec, source, + provenance |
 | `compound_species` | 1,930 | (화합물, 데이터셋) 1개 | inchikey, species ∈ {human, mouse_serum, mouse_feces}, cnp_id |
@@ -289,6 +298,15 @@ metabolite-study/
 ```
 
 ### 진행 로그
+
+- **2026-07-23** — HMDB Source 서브트리 + 기원 카테고리화:
+  - 6.1GB `hmdb_metabolites.xml`(217,920 레코드)을 스트리밍 파싱으로 전수 프로파일 — `docs/HMDB_structure_guide.md` 참조
+  - HMDB `Disposition > Source`가 endo/exo 이분법이 **아님**을 확정: 형제 라벨 6개(Food 146,742 / Endogenous 145,377 / Biological 144,377 / Synthetic 193 / Environmental 162 / **Exogenous 6**); source 태깅 화합물의 93%가 라벨 3개 동시 보유(Biological & Endogenous & Food, 139,977)
+  - 신규 `pipeline/build_source_hierarchy.py` → `data/reference/hmdb_source_hierarchy.json` (457-term roll-up 맵, term → 6개 최상위 버킷 + 트리 레벨)
+  - `normalize.py`가 `compound_origins` 각 행에 `origin_category`(6버킷 roll-up)·`origin_level`(트리 깊이) 주석 추가; 하위호환(컬럼 추가만)
+  - `export_view.py`에 `hmdb_origin_category` 요약 컬럼 추가(종명까지 뭉친 `hmdb_origin`과 별도로 버킷만)
+  - 재현 baseline: 새 컬럼 반영해 `compound_origins` 지문만 갱신(다른 테이블은 손대지 않음)
+  - **알려진 이슈**: `compounds` 지문이 clean checkout에서도 baseline과 DIFFER (이번 변경 이전부터 존재; `.work/interim/` 캐시가 지문 생성 당시와 드리프트) — baseline 재생성으로 덮지 않고 별도 조사 예정
 
 - **2026-07-22** — InChIKey 정규화 리팩터링:
   - 기본키 COCONUT CNP id → **InChIKey**; 행 단위 provenance 포함 6개 long-format 정규화 테이블

@@ -58,6 +58,23 @@ def _load_json(name: str) -> dict:
     return json.loads(p.read_text()) if p.exists() else {}
 
 
+def _load_source_hierarchy() -> dict:
+    """HMDB Source 서브트리 계층 맵 로드.
+
+    반환: term(lower) -> {"category": 최상위버킷, "level": int, "path": str}.
+    파일이 없으면 빈 dict(주석 컬럼은 None으로 채워짐 — 하위호환).
+    build_source_hierarchy.py로 생성: data/reference/hmdb_source_hierarchy.json.
+    """
+    p = C.HMDB_SOURCE_HIERARCHY
+    if not p.exists():
+        return {}
+    raw = json.loads(p.read_text()).get("terms", {})
+    return {t.lower(): {"category": v.get("top_bucket"),
+                        "level": v.get("level"),
+                        "path": v.get("path")}
+            for t, v in raw.items()}
+
+
 def _aslist(val) -> list:
     """numpy array / list / None / scalar를 안전하게 리스트로."""
     if val is None:
@@ -85,6 +102,7 @@ def normalize() -> dict:
     hmdb_idx = _load_json("hmdb_index.json")
     enz_cache = _load_json("enzyme_cache.json")
     brenda = _load_json("brenda_cache.json")
+    src_hier = _load_source_hierarchy()   # HMDB 기원 라벨 → 6버킷 roll-up 주석
 
     coconut_ver = C.coconut_version()
     hmdb_ver = C.hmdb_version()
@@ -172,6 +190,14 @@ def normalize() -> dict:
         ["inchikey", "source", "external_id"]).reset_index(drop=True)
 
     # ---------- compound_origins (long, 다중 기원 보존) ----------
+    # 각 기원 행에 origin_category(6버킷 roll-up)와 origin_level(트리 깊이)을 주석해
+    # 평평한 origin_label을 항해 가능한 계층으로 정리한다. HMDB 기원 라벨은
+    # Disposition>Source 서브트리(build_source_hierarchy.py)로 roll-up하고, 그 외
+    # 소스는 소스 성격에 맞는 고정 카테고리를 준다:
+    #   ChEBI role     -> "ChEBI role"        (구조/역할 온톨로지, Source와 무관)
+    #   COCONUT organism-> "Biological (COCONUT)"  (천연물 생물기원)
+    #   MMMDB tissue   -> "Endogenous (MMMDB tissue)"  (쥐 조직 실검출 = 내인성 직접근거)
+    # HMDB 라벨이 맵에 없으면(신규/희귀 term) category=None, level=None (하위호환).
     origins = []
     # 화합물별 병합 입력 수집(분류 재계산에도 사용)
     agg = {}  # inchikey -> {roles:set, hmdb:set, orgs:set}
@@ -184,24 +210,30 @@ def normalize() -> dict:
             if role:
                 a["roles"].add(str(role))
                 origins.append({"inchikey": ik, "source": "ChEBI", "origin_label": str(role),
+                                "origin_category": "ChEBI role", "origin_level": None,
                                 "source_version": C.SOURCE_VERSIONS["ChEBI"], "retrieved_at": now})
-        # HMDB source labels
+        # HMDB source labels — Disposition>Source 계층으로 6버킷 roll-up
         hs = _aslist(hmdb_idx.get(ik, {}).get("hmdb_source")) or _aslist(r.get("hmdb_source"))
         for lab in hs:
             if lab:
                 a["hmdb"].add(str(lab))
+                hinfo = src_hier.get(str(lab).lower(), {})
                 origins.append({"inchikey": ik, "source": "HMDB", "origin_label": str(lab),
+                                "origin_category": hinfo.get("category"),
+                                "origin_level": hinfo.get("level"),
                                 "source_version": hmdb_ver, "retrieved_at": now})
         # COCONUT organisms
         for org in _split_organisms(r.get("coconut_organisms")):
             a["orgs"].add(org)
             origins.append({"inchikey": ik, "source": "COCONUT", "origin_label": org,
+                            "origin_category": "Biological (COCONUT)", "origin_level": None,
                             "source_version": coconut_ver, "retrieved_at": now})
     # MMMDB 조직 검출 기원(화합물별 1회, full-InChIKey 매칭)
     for ik in comp["inchikey"]:
         for lab in mmmdb_labels.get(ik, []):
             origins.append({"inchikey": ik, "source": "MMMDB",
                             "origin_label": f"mouse tissue: {lab}",
+                            "origin_category": "Endogenous (MMMDB tissue)", "origin_level": None,
                             "source_version": mmmdb_ver, "retrieved_at": now})
     origins_df = pd.DataFrame(origins).drop_duplicates(
         ["inchikey", "source", "origin_label"]).reset_index(drop=True)

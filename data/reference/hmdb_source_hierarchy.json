@@ -1,0 +1,2304 @@
+{
+ "_meta": {
+  "hmdb_version": "HMDB-local-20260710",
+  "root": "Disposition > Source",
+  "top_buckets": [
+   "Biological",
+   "Endogenous",
+   "Environmental",
+   "Exogenous",
+   "Food",
+   "Synthetic"
+  ],
+  "n_terms": 457,
+  "retrieved_at": "2026-07-23T07:40:41.970418+00:00",
+  "generated_by": "pipeline/build_source_hierarchy.py"
+ },
+ "terms": {
+  "Acetobacter": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Acetobacter"
+  },
+  "Acetobacter aceti ": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Acetobacter > Acetobacter aceti "
+  },
+  "Acetobacter suboxydans": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Acetobacter > Acetobacter suboxydans"
+  },
+  "Achromobacter": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Achromobacter"
+  },
+  "Achromobacter xylosoxydans": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Achromobacter > Achromobacter xylosoxydans"
+  },
+  "Acidithiobacillus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Acidithiobacillus"
+  },
+  "Acidithiobacillus caldus": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Acidithiobacillus > Acidithiobacillus caldus"
+  },
+  "Acidithiobacillus ferrooxidans": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Acidithiobacillus > Acidithiobacillus ferrooxidans"
+  },
+  "Acinetobacter": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Acinetobacter"
+  },
+  "Acinetobacter baumannii": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Acinetobacter > Acinetobacter baumannii"
+  },
+  "Actinobacillus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Actinobacillus"
+  },
+  "Actinobacillus succinogenes ": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Actinobacillus > Actinobacillus succinogenes "
+  },
+  "Actinobacteria": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Actinobacteria"
+  },
+  "Actinomycetaceae": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Actinomycetaceae"
+  },
+  "Actinomycetales": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Actinomycetales"
+  },
+  "Aerococcus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Aerococcus"
+  },
+  "Aeromonas": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Aeromonas"
+  },
+  "Aeromonas hydrophila": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Aeromonas > Aeromonas hydrophila"
+  },
+  "Afipia": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Afipia"
+  },
+  "Agrobacterium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Agrobacterium"
+  },
+  "Agrobacterium tumefaciens": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Agrobacterium > Agrobacterium tumefaciens"
+  },
+  "Akkermansia": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Akkermansia"
+  },
+  "Akkermansia muciniphilia": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Akkermansia > Akkermansia muciniphilia"
+  },
+  "Alcaligenes": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Alcaligenes"
+  },
+  "Alcaligenes eutrophus": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Alcaligenes > Alcaligenes eutrophus"
+  },
+  "Algibacter": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Algibacter"
+  },
+  "Algibacter sp. AQP096": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Algibacter > Algibacter sp. AQP096"
+  },
+  "Alicyclobacillus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Alicyclobacillus"
+  },
+  "Alicyclobacillus acidocaldarius": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Alicyclobacillus > Alicyclobacillus acidocaldarius"
+  },
+  "Alkalibaculum": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Alkalibaculum"
+  },
+  "Alkalibaculum bacchi": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Alkalibaculum > Alkalibaculum bacchi"
+  },
+  "Alteromonas": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Alteromonas"
+  },
+  "Amycolatopsis": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Amycolatopsis"
+  },
+  "Anaerobiospirillum": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Anaerobiospirillum"
+  },
+  "Anaerobiospirillum succiniciproducens": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Anaerobiospirillum > Anaerobiospirillum succiniciproducens"
+  },
+  "Anaerococcus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Anaerococcus"
+  },
+  "Anaerostipes": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Anaerostipes"
+  },
+  "Animal": {
+   "top_bucket": "Biological",
+   "level": 2,
+   "path": "Source > Biological > Animal"
+  },
+  "Aquibacter": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Aquibacter"
+  },
+  "Aquibacter zeaxanthinifacien": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Aquibacter > Aquibacter zeaxanthinifacien"
+  },
+  "Arthrobacter": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Arthrobacter"
+  },
+  "Arthrobacter globiformis": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Arthrobacter > Arthrobacter globiformis"
+  },
+  "Aspergillus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Fungi > Aspergillus"
+  },
+  "Aspergillus clavatus": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Aspergillus > Aspergillus clavatus"
+  },
+  "Aspergillus fischeri": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Aspergillus > Aspergillus fischeri"
+  },
+  "Aspergillus flavus": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Aspergillus > Aspergillus flavus"
+  },
+  "Aspergillus giganteus": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Aspergillus > Aspergillus giganteus"
+  },
+  "Aspergillus glaucus": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Aspergillus > Aspergillus glaucus"
+  },
+  "Aspergillus nidulans": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Aspergillus > Aspergillus nidulans"
+  },
+  "Aspergillus niger": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Aspergillus > Aspergillus niger"
+  },
+  "Aspergillus niveus": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Aspergillus > Aspergillus niveus"
+  },
+  "Aspergillus ochraceus": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Aspergillus > Aspergillus ochraceus"
+  },
+  "Aspergillus parasiticus": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Aspergillus > Aspergillus parasiticus"
+  },
+  "Aspergillus parasitius": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Aspergillus > Aspergillus parasitius"
+  },
+  "Aspergillus terreus": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Aspergillus > Aspergillus terreus"
+  },
+  "Aspergillus versicolor": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Aspergillus > Aspergillus versicolor"
+  },
+  "Azomonas": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Azomonas"
+  },
+  "Azomonas macrocytogenes": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Azomonas > Azomonas macrocytogenes"
+  },
+  "Azospirillum": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Azospirillum"
+  },
+  "Azospirillum brasilense": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Azospirillum > Azospirillum brasilense"
+  },
+  "Bacillus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Bacillus"
+  },
+  "Bacillus Coagulans": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Bacillus > Bacillus Coagulans"
+  },
+  "Bacillus cereus ": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Bacillus > Bacillus cereus "
+  },
+  "Bacillus polymyxa": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Bacillus > Bacillus polymyxa"
+  },
+  "Bacillus subtilis": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Bacillus > Bacillus subtilis"
+  },
+  "Bacillus thuringiensis": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Bacillus > Bacillus thuringiensis"
+  },
+  "Bacteroides": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Bacteroides"
+  },
+  "Bacteroides fragilis": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Bacteroides > Bacteroides fragilis"
+  },
+  "Bacteroides ovatus": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Bacteroides > Bacteroides ovatus"
+  },
+  "Bacteroides ruminicola": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Bacteroides > Bacteroides ruminicola"
+  },
+  "Bacteroides spp. ": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Bacteroides > Bacteroides spp. "
+  },
+  "Bacteroides thetaiotaomicron": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Bacteroides > Bacteroides thetaiotaomicron"
+  },
+  "Bacteroidetes": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Bacteroidetes"
+  },
+  "Basfia": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Basfia"
+  },
+  "Basfia succiniciproducens": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Basfia > Basfia succiniciproducens"
+  },
+  "Beauveria": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Fungi > Beauveria"
+  },
+  "Beauveria sulfurescens": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Beauveria > Beauveria sulfurescens"
+  },
+  "Bifidobacteria": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Bifidobacteria"
+  },
+  "Bifidobacteria catenulatum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Bifidobacteria > Bifidobacteria catenulatum"
+  },
+  "Bifidobacterium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Bifidobacterium"
+  },
+  "Bifidobacterium Bifidum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Bifidobacterium > Bifidobacterium Bifidum"
+  },
+  "Bifidobacterium lactis": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Bifidobacterium > Bifidobacterium lactis"
+  },
+  "Bifidobacterium longum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Bifidobacterium > Bifidobacterium longum"
+  },
+  "Biological": {
+   "top_bucket": "Biological",
+   "level": 1,
+   "path": "Source > Biological"
+  },
+  "Biﬁdobacterium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Biﬁdobacterium"
+  },
+  "Bradyrhizobium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Bradyrhizobium"
+  },
+  "Bradyrhizobium diazoefficiens": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Bradyrhizobium > Bradyrhizobium diazoefficiens"
+  },
+  "Brevibacterium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Brevibacterium"
+  },
+  "Brevibacterium healii": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Brevibacterium > Brevibacterium healii"
+  },
+  "Burkholderia": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Burkholderia"
+  },
+  "Burkholderia stabilis": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Burkholderia > Burkholderia stabilis"
+  },
+  "Butyrivibrio": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Butyrivibrio"
+  },
+  "Butyrivibrio fibrisolvens": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Butyrivibrio > Butyrivibrio fibrisolvens"
+  },
+  "Campylobacter": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Campylobacter"
+  },
+  "Candida": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Fungi > Candida"
+  },
+  "Candida azyma": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Candida > Candida azyma"
+  },
+  "Candida lipolytica": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Candida > Candida lipolytica"
+  },
+  "Candida magnoliae": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Candida > Candida magnoliae"
+  },
+  "Candida parapsilosis": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Candida > Candida parapsilosis"
+  },
+  "Candida pelliculosa": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Candida > Candida pelliculosa"
+  },
+  "Candida utilis": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Candida > Candida utilis"
+  },
+  "Candida zeylanoides": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Candida > Candida zeylanoides"
+  },
+  "Carnobacterium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Carnobacterium"
+  },
+  "Carnobacterium divergens": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Carnobacterium > Carnobacterium divergens"
+  },
+  "Cellulomonas": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Cellulomonas"
+  },
+  "Cellulomonas galba": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Cellulomonas > Cellulomonas galba"
+  },
+  "Christensenellaceae": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Christensenellaceae"
+  },
+  "Chromobacterium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Chromobacterium"
+  },
+  "Chromobacterium prodigiosum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Chromobacterium > Chromobacterium prodigiosum"
+  },
+  "Citrobacter": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Citrobacter"
+  },
+  "Citrobacter braakii": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Citrobacter > Citrobacter braakii"
+  },
+  "Citrobacter freundii": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Citrobacter > Citrobacter freundii"
+  },
+  "Citrobacter frundii": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Citrobacter > Citrobacter frundii"
+  },
+  "Citrobacter intermediuns": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Citrobacter > Citrobacter intermediuns"
+  },
+  "Citrobacter youngae": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Citrobacter > Citrobacter youngae"
+  },
+  "Clostridia propionicum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridia propionicum"
+  },
+  "Clostridium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Clostridium"
+  },
+  "Clostridium XIVa": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium XIVa"
+  },
+  "Clostridium acetobutylicum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium acetobutylicum"
+  },
+  "Clostridium aminophilum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium aminophilum"
+  },
+  "Clostridium aurantibutyricum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium aurantibutyricum"
+  },
+  "Clostridium beijerinckii": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium beijerinckii"
+  },
+  "Clostridium bifermentans": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium bifermentans"
+  },
+  "Clostridium botulinium": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium botulinium"
+  },
+  "Clostridium botulinum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium botulinum"
+  },
+  "Clostridium butylicum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium butylicum"
+  },
+  "Clostridium calortolerans": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium calortolerans"
+  },
+  "Clostridium caproicum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium caproicum"
+  },
+  "Clostridium carboxidivorans": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium carboxidivorans"
+  },
+  "Clostridium cellulolyticum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium cellulolyticum"
+  },
+  "Clostridium cellulovorans": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium cellulovorans"
+  },
+  "Clostridium difficile": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium difficile"
+  },
+  "Clostridium disporicum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium disporicum"
+  },
+  "Clostridium drakei": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium drakei"
+  },
+  "Clostridium felsenium": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium felsenium"
+  },
+  "Clostridium ghoni": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium ghoni"
+  },
+  "Clostridium glycolycum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium glycolycum"
+  },
+  "Clostridium lituseburense": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium lituseburense"
+  },
+  "Clostridium mangenoyi": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium mangenoyi"
+  },
+  "Clostridium neopropionicum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium neopropionicum"
+  },
+  "Clostridium orbiscindens": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium orbiscindens"
+  },
+  "Clostridium pasteurianum ": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium pasteurianum "
+  },
+  "Clostridium propionicum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium propionicum"
+  },
+  "Clostridium propylbutyricum ": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium propylbutyricum "
+  },
+  "Clostridium putrefaciens": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium putrefaciens"
+  },
+  "Clostridium saccharogumia": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium saccharogumia"
+  },
+  "Clostridium saccharoperbutylacetonicum ": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium saccharoperbutylacetonicum "
+  },
+  "Clostridium scatologenes": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium scatologenes"
+  },
+  "Clostridium sordellii": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium sordellii"
+  },
+  "Clostridium species": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium species"
+  },
+  "Clostridium sporogenes": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium sporogenes"
+  },
+  "Clostridium sticklandii": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium sticklandii"
+  },
+  "Clostridium stricklandii": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium stricklandii"
+  },
+  "Clostridium subterminale": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium subterminale"
+  },
+  "Clostridium thermocellum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium thermocellum"
+  },
+  "Clostridium thermosaccharolyticum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium thermosaccharolyticum"
+  },
+  "Clostridium tyrobutyricum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Clostridium > Clostridium tyrobutyricum"
+  },
+  "Coffea": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Plant > Coffea"
+  },
+  "Coprococcus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Coprococcus"
+  },
+  "Coprococcus comes ": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Coprococcus > Coprococcus comes "
+  },
+  "Coprococcus eutactus ": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Coprococcus > Coprococcus eutactus "
+  },
+  "Corynebacterium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Corynebacterium"
+  },
+  "Corynebacterium glutamicum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Corynebacterium > Corynebacterium glutamicum"
+  },
+  "Corynebacterium jekeium": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Corynebacterium > Corynebacterium jekeium"
+  },
+  "Cronobacter": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Cronobacter"
+  },
+  "Cronobacter sakazakii": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Cronobacter > Cronobacter sakazakii"
+  },
+  "Cryptococcus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Fungi > Cryptococcus"
+  },
+  "Cucurbitaceae": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Plant > Cucurbitaceae"
+  },
+  "Cupriavidus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Cupriavidus"
+  },
+  "Cupriavidus basilensis": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Cupriavidus > Cupriavidus basilensis"
+  },
+  "Cupriavidus necator": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Cupriavidus > Cupriavidus necator"
+  },
+  "Cyanobacteria": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Cyanobacteria"
+  },
+  "Cyanothece": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Cyanothece"
+  },
+  "Debaryomyces": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Fungi > Debaryomyces"
+  },
+  "Delftia": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Delftia"
+  },
+  "Delftia acidivorans": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Delftia > Delftia acidivorans"
+  },
+  "Desulfitobacterium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Desulfitobacterium"
+  },
+  "Desulfovibrio": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Desulfovibrio"
+  },
+  "Desulfovibrio vulgaris": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Desulfovibrio > Desulfovibrio vulgaris"
+  },
+  "Desulfuromonas": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Desulfuromonas"
+  },
+  "Dialister": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Dialister"
+  },
+  "Dickeya dadantii": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Dickeya dadantii"
+  },
+  "Edwardsiella": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Edwardsiella"
+  },
+  "Eggerthella": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Eggerthella"
+  },
+  "Endogenous": {
+   "top_bucket": "Endogenous",
+   "level": 1,
+   "path": "Source > Endogenous"
+  },
+  "Enterobacter": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Enterobacter"
+  },
+  "Enterobacter aerogenes": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Enterobacter > Enterobacter aerogenes"
+  },
+  "Enterobacter cloacae": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Enterobacter > Enterobacter cloacae"
+  },
+  "Enterococcus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Enterococcus"
+  },
+  "Enterococcus faecalis": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Enterococcus > Enterococcus faecalis"
+  },
+  "Enterococcus faecium": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Enterococcus > Enterococcus faecium"
+  },
+  "Environmental": {
+   "top_bucket": "Environmental",
+   "level": 1,
+   "path": "Source > Environmental"
+  },
+  "Erwinia chrysanthemi": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Dickeya dadantii > Erwinia chrysanthemi"
+  },
+  "Escherichia": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Escherichia"
+  },
+  "Escherichia coli": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Escherichia > Escherichia coli"
+  },
+  "Eubacterium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Eubacterium"
+  },
+  "Eubacterium lentum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Eubacterium > Eubacterium lentum"
+  },
+  "Eubacterium oxidoreducens": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Eubacterium > Eubacterium oxidoreducens"
+  },
+  "Eubacterium ramulus": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Eubacterium > Eubacterium ramulus"
+  },
+  "Exogenous": {
+   "top_bucket": "Exogenous",
+   "level": 1,
+   "path": "Source > Exogenous"
+  },
+  "Fabaceae": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Plant > Fabaceae"
+  },
+  "Faecalibacterium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Faecalibacterium"
+  },
+  "Faecalibacterium prausnitzii": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Faecalibacterium > Faecalibacterium prausnitzii"
+  },
+  "Firmicutes": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Firmicutes"
+  },
+  "Flavobacterium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Flavobacterium"
+  },
+  "Flavobacterium multivorum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Flavobacterium > Flavobacterium multivorum"
+  },
+  "Food": {
+   "top_bucket": "Food",
+   "level": 1,
+   "path": "Source > Food"
+  },
+  "Formosa": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Formosa"
+  },
+  "Fungi": {
+   "top_bucket": "Biological",
+   "level": 2,
+   "path": "Source > Biological > Fungi"
+  },
+  "Fusarium verticilloides": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Nectriaceae > Fusarium verticilloides"
+  },
+  "Gammaproteobacteria": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Gammaproteobacteria"
+  },
+  "Geobacillus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Geobacillus"
+  },
+  "Geobacillus stearothermophilus": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Geobacillus > Geobacillus stearothermophilus"
+  },
+  "Geobacillus thermoglucosidasius": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Geobacillus > Geobacillus thermoglucosidasius"
+  },
+  "Gluconacetobacter": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Gluconacetobacter"
+  },
+  "Gluconacetobacter diazotrophicus": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Gluconacetobacter > Gluconacetobacter diazotrophicus"
+  },
+  "Gluconobacter": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Gluconobacter"
+  },
+  "Gluconobacter dioxyacetonicus": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Gluconobacter > Gluconobacter dioxyacetonicus"
+  },
+  "Gluconobacter frateurii": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Gluconobacter > Gluconobacter frateurii"
+  },
+  "Gluconobacter industrius": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Gluconobacter > Gluconobacter industrius"
+  },
+  "Gluconobacter suboxydans": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Gluconobacter > Gluconobacter suboxydans"
+  },
+  "Glycine max": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Plant > Glycine max"
+  },
+  "Gram-negative bacteria": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Gram-negative bacteria"
+  },
+  "Gram-positive bacteria": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Gram-positive bacteria"
+  },
+  "Gramella": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Gramella"
+  },
+  "Gramella oceani": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Gramella > Gramella oceani"
+  },
+  "Gramella planctonica": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Gramella > Gramella planctonica"
+  },
+  "Granulibacter": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Granulibacter"
+  },
+  "Granulibacter bethesdensis": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Granulibacter > Granulibacter bethesdensis"
+  },
+  "Haloanaerobacter": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Haloanaerobacter"
+  },
+  "Halobacterium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Halobacterium"
+  },
+  "Halobacterium salinarum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Halobacterium > Halobacterium salinarum"
+  },
+  "Hansenula": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Hansenula"
+  },
+  "Hansenula polymorpha": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Hansenula > Hansenula polymorpha"
+  },
+  "Helicobacter": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Helicobacter"
+  },
+  "Helicobacter pylori": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Helicobacter > Helicobacter pylori"
+  },
+  "Human gut microbiota": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Human gut microbiota"
+  },
+  "Hyunsoonleella": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Hyunsoonleella"
+  },
+  "Hyunsoonleella jejuensis": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Hyunsoonleella > Hyunsoonleella jejuensis"
+  },
+  "Ketogulonicigenium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Ketogulonicigenium"
+  },
+  "Ketogulonicigenium vulgare": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Ketogulonicigenium > Ketogulonicigenium vulgare"
+  },
+  "Klebsiella": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Klebsiella"
+  },
+  "Klebsiella oxytoca": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Klebsiella > Klebsiella oxytoca"
+  },
+  "Klebsiella pneumoniae": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Klebsiella > Klebsiella pneumoniae"
+  },
+  "Klebsiella rhinoscleromatis": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Klebsiella > Klebsiella rhinoscleromatis"
+  },
+  "Kluyveromyces": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Fungi > Kluyveromyces"
+  },
+  "Kluyveromyces lactis": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Kluyveromyces > Kluyveromyces lactis"
+  },
+  "Kordia": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Kordia"
+  },
+  "Kordia aquimaris": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Kordia > Kordia aquimaris"
+  },
+  "Lachnospiraceae": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Lachnospiraceae"
+  },
+  "Lactobacillus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Lactobacillus"
+  },
+  "Lactobacillus brevis": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Lactobacillus > Lactobacillus brevis"
+  },
+  "Lactobacillus casei": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Lactobacillus > Lactobacillus casei"
+  },
+  "Lactobacillus delbrueckii": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Lactobacillus > Lactobacillus delbrueckii"
+  },
+  "Lactobacillus delbruekii": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Lactobacillus > Lactobacillus delbruekii"
+  },
+  "Lactobacillus fermentum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Lactobacillus > Lactobacillus fermentum"
+  },
+  "Lactobacillus gasseri": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Lactobacillus > Lactobacillus gasseri"
+  },
+  "Lactobacillus helveticus": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Lactobacillus > Lactobacillus helveticus"
+  },
+  "Lactobacillus hilgardii": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Lactobacillus > Lactobacillus hilgardii"
+  },
+  "Lactobacillus jensenii": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Lactobacillus > Lactobacillus jensenii"
+  },
+  "Lactobacillus mucosae": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Lactobacillus > Lactobacillus mucosae"
+  },
+  "Lactobacillus paracasei": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Lactobacillus > Lactobacillus paracasei"
+  },
+  "Lactobacillus plantarum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Lactobacillus > Lactobacillus plantarum"
+  },
+  "Lactococcus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Lactococcus"
+  },
+  "Lactococcus lactis": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Lactococcus > Lactococcus lactis"
+  },
+  "Leptospirillum": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Leptospirillum"
+  },
+  "Leptospirillum ferriphilum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Leptospirillum > Leptospirillum ferriphilum"
+  },
+  "Leuconostoc": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Leuconostoc"
+  },
+  "Leuconostoc mesenteroides": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Leuconostoc > Leuconostoc mesenteroides"
+  },
+  "Lysinibacillus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Lysinibacillus"
+  },
+  "Lysinibacillus cresolivorans": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Lysinibacillus > Lysinibacillus cresolivorans"
+  },
+  "Mannheimia": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Mannheimia"
+  },
+  "Mannheimia succiniciproducens": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Mannheimia > Mannheimia succiniciproducens"
+  },
+  "Megasphaera": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Megasphaera"
+  },
+  "Megasphaera elsdenii": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Megasphaera > Megasphaera elsdenii"
+  },
+  "Meningococcus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Meningococcus"
+  },
+  "Mesoflavibacter": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Mesoflavibacter"
+  },
+  "Mesoflavibacter aestuarii": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Mesoflavibacter > Mesoflavibacter aestuarii"
+  },
+  "Mesoflavibacter zeaxanthinifaciens": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Mesoflavibacter > Mesoflavibacter zeaxanthinifaciens"
+  },
+  "Methanobacterium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Methanobacterium"
+  },
+  "Methanobacterium bryantii": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Methanobacterium > Methanobacterium bryantii"
+  },
+  "Methanobacterium espanolae": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Methanobacterium > Methanobacterium espanolae"
+  },
+  "Methanobrevibacter": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Methanobrevibacter"
+  },
+  "Methanococcus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Methanococcus"
+  },
+  "Methanocorpusculum": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Methanocorpusculum"
+  },
+  "Methanoculleus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Methanoculleus"
+  },
+  "Methanoflorens": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Methanoflorens"
+  },
+  "Methanofollis": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Methanofollis"
+  },
+  "Methanogenium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Methanogenium"
+  },
+  "Methanomicrobium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Methanomicrobium"
+  },
+  "Methanopyrus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Methanopyrus"
+  },
+  "Methanoregula": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Methanoregula"
+  },
+  "Methanosaeta": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Methanosaeta"
+  },
+  "Methanosarcina": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Methanosarcina"
+  },
+  "Methanosphaera": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Methanosphaera"
+  },
+  "Methanosphaera stadtmanae": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Methanosphaera > Methanosphaera stadtmanae"
+  },
+  "Methanospirillium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Methanospirillium"
+  },
+  "Methanospirillium hungatei": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Methanospirillium > Methanospirillium hungatei"
+  },
+  "Methanothermobacter": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Methanothermobacter"
+  },
+  "Methanothrix sochngenii": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Methanosaeta > Methanothrix sochngenii"
+  },
+  "Methylobacterium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Methylobacterium"
+  },
+  "Microbe": {
+   "top_bucket": "Biological",
+   "level": 2,
+   "path": "Source > Biological > Microbe"
+  },
+  "Microbulbifer": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Microbulbifer"
+  },
+  "Micrococcus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Micrococcus"
+  },
+  "Mobiluncus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Mobiluncus"
+  },
+  "Moraxella": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Moraxella"
+  },
+  "Muricauda": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Muricauda"
+  },
+  "Muricauda Aquimarina": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Muricauda > Muricauda Aquimarina"
+  },
+  "Muricauda flavescens": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Muricauda > Muricauda flavescens"
+  },
+  "Muricauda lutaonensis": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Muricauda > Muricauda lutaonensis"
+  },
+  "Muricauda olearia": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Muricauda > Muricauda olearia"
+  },
+  "Mycobacterium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Mycobacterium"
+  },
+  "Mycobacterium smegmatis": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Mycobacterium > Mycobacterium smegmatis"
+  },
+  "Mycobacterium tuberculosis": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Mycobacterium > Mycobacterium tuberculosis"
+  },
+  "Nectriaceae": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Fungi > Nectriaceae"
+  },
+  "Nocardia": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Nocardia"
+  },
+  "Nubsella": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Nubsella"
+  },
+  "Nubsella zeaxanthinifaciens": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Nubsella > Nubsella zeaxanthinifaciens"
+  },
+  "Oenococcus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Oenococcus"
+  },
+  "Olsenella": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Olsenella"
+  },
+  "Pantoea": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Pantoea"
+  },
+  "Pantoea agglomerans": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Pantoea > Pantoea agglomerans"
+  },
+  "Paracoccus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Paracoccus"
+  },
+  "Paracoccus zeaxanthinifaciens": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Paracoccus > Paracoccus zeaxanthinifaciens"
+  },
+  "Pediococcus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Pediococcus"
+  },
+  "Pediococcus acidilactici": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Pediococcus > Pediococcus acidilactici"
+  },
+  "Pediococcus pentosaceus": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Pediococcus > Pediococcus pentosaceus"
+  },
+  "Penicillium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Fungi > Penicillium"
+  },
+  "Peptostreptococcus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Peptostreptococcus"
+  },
+  "Peptostreptococcus russellii": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Peptostreptococcus > Peptostreptococcus russellii"
+  },
+  "Personal care product": {
+   "top_bucket": "Synthetic",
+   "level": 2,
+   "path": "Source > Synthetic > Personal care product"
+  },
+  "Phallus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Fungi > Phallus"
+  },
+  "Phallus impudicus": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Phallus > Phallus impudicus"
+  },
+  "Phascolarctobacterium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Phascolarctobacterium"
+  },
+  "Phascolarctobacterium succinatutens": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Phascolarctobacterium > Phascolarctobacterium succinatutens"
+  },
+  "Photobacterium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Photobacterium"
+  },
+  "Photobacterium phosphoreum ": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Photobacterium > Photobacterium phosphoreum "
+  },
+  "Pichia": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Fungi > Pichia"
+  },
+  "Pichia anomala": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Pichia > Pichia anomala"
+  },
+  "Pichia naganishii": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Pichia > Pichia naganishii"
+  },
+  "Pichia octospora": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Pichia > Pichia octospora"
+  },
+  "Plant": {
+   "top_bucket": "Biological",
+   "level": 2,
+   "path": "Source > Biological > Plant"
+  },
+  "Poaceae": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Plant > Poaceae"
+  },
+  "Prevotella": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Prevotella"
+  },
+  "Propionibacterium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Propionibacterium"
+  },
+  "Propionibacterium acidipropionici": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Propionibacterium > Propionibacterium acidipropionici"
+  },
+  "Propionibacterium acnes": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Propionibacterium > Propionibacterium acnes"
+  },
+  "Propionibacterium freudenreichii": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Propionibacterium > Propionibacterium freudenreichii"
+  },
+  "Propionibacterium shermanii": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Propionibacterium > Propionibacterium shermanii"
+  },
+  "Propionigenum": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Propionigenum"
+  },
+  "Propionigenum modestum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Propionigenum > Propionigenum modestum"
+  },
+  "Proteobacteria": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Proteobacteria"
+  },
+  "Proteus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Proteus"
+  },
+  "Proteus mirabilis": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Proteus > Proteus mirabilis"
+  },
+  "Proteus vulgaris": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Proteus > Proteus vulgaris"
+  },
+  "Providencia": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Providencia"
+  },
+  "Pseudomonas": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Pseudomonas"
+  },
+  "Pseudomonas acidovorans": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Pseudomonas > Pseudomonas acidovorans"
+  },
+  "Pseudomonas aeruginosa": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Pseudomonas > Pseudomonas aeruginosa"
+  },
+  "Pseudomonas deceptionensis": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Pseudomonas > Pseudomonas deceptionensis"
+  },
+  "Pseudomonas entomophila": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Pseudomonas > Pseudomonas entomophila"
+  },
+  "Pseudomonas fluorescens": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Pseudomonas > Pseudomonas fluorescens"
+  },
+  "Pseudomonas ligustri": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Pseudomonas > Pseudomonas ligustri"
+  },
+  "Pseudomonas orvilla": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Pseudomonas > Pseudomonas orvilla"
+  },
+  "Pseudomonas pseudomaleii": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Pseudomonas > Pseudomonas pseudomaleii"
+  },
+  "Pseudomonas putida": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Pseudomonas > Pseudomonas putida"
+  },
+  "Pseudomonas savastanoi": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Pseudomonas > Pseudomonas savastanoi"
+  },
+  "Pseudomonas sp. AZ10 UPM": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Pseudomonas > Pseudomonas sp. AZ10 UPM"
+  },
+  "Pseudomonas sp. CP4": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Pseudomonas > Pseudomonas sp. CP4"
+  },
+  "Pseudomonas sp. DSM 2874": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Pseudomonas > Pseudomonas sp. DSM 2874"
+  },
+  "Pseudomonas sp. ST-200": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Pseudomonas > Pseudomonas sp. ST-200"
+  },
+  "Pseudomonas syringae": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Pseudomonas > Pseudomonas syringae"
+  },
+  "Pseudomonas uorescens": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Pseudomonas > Pseudomonas uorescens"
+  },
+  "Rhizobiaceae": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Rhizobiaceae"
+  },
+  "Rhizobium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Rhizobium"
+  },
+  "Rhizobium leguminosarum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Rhizobiaceae > Rhizobium leguminosarum"
+  },
+  "Rhizopus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Fungi > Rhizopus"
+  },
+  "Rhizopus oryzae": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Rhizopus > Rhizopus oryzae"
+  },
+  "Rhodobacter spaeroides": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Rhodobacteraceae > Rhodobacter spaeroides"
+  },
+  "Rhodobacter sphaeroides": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Rhodobacteraceae > Rhodobacter sphaeroides"
+  },
+  "Rhodobacteraceae": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Rhodobacteraceae"
+  },
+  "Rhodococcus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Rhodococcus"
+  },
+  "Rhodococcus rhodochrous": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Rhodococcus > Rhodococcus rhodochrous"
+  },
+  "Rhodopseudomonas": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Rhodopseudomonas"
+  },
+  "Rhodotorula": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Fungi > Rhodotorula"
+  },
+  "Rlzodopseudomonas spheroides": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Rhodobacteraceae > Rlzodopseudomonas spheroides"
+  },
+  "Roseburia": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Roseburia"
+  },
+  "Ruminococcaceae": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Ruminococcaceae"
+  },
+  "Ruminococcus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Ruminococcus"
+  },
+  "Saccharomyces": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Fungi > Saccharomyces"
+  },
+  "Saccharomyces cerevisiae": {
+   "top_bucket": "Biological",
+   "level": 2,
+   "path": "Source > Biological > Saccharomyces cerevisiae"
+  },
+  "Salmonella": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Salmonella"
+  },
+  "Salmonella enterica": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Salmonella > Salmonella enterica"
+  },
+  "Salmonella typhimurium": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Salmonella > Salmonella typhimurium"
+  },
+  "Sarcina": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Sarcina"
+  },
+  "Selenomonas": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Selenomonas"
+  },
+  "Selenomonas ruminantium": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Selenomonas > Selenomonas ruminantium"
+  },
+  "Selenomonas sputigena": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Selenomonas > Selenomonas sputigena"
+  },
+  "Serratia": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Serratia"
+  },
+  "Serratia marcescens": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Serratia > Serratia marcescens"
+  },
+  "Shewanella": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Shewanella"
+  },
+  "Shigella": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Shigella"
+  },
+  "Siansivirga": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Siansivirga"
+  },
+  "Siansivirga zeaxanthinifaciens": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Siansivirga > Siansivirga zeaxanthinifaciens"
+  },
+  "Sinorhizobium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Sinorhizobium"
+  },
+  "Sludge": {
+   "top_bucket": "Environmental",
+   "level": 2,
+   "path": "Source > Environmental > Sludge"
+  },
+  "Smoke": {
+   "top_bucket": "Environmental",
+   "level": 2,
+   "path": "Source > Environmental > Smoke"
+  },
+  "Soil": {
+   "top_bucket": "Environmental",
+   "level": 2,
+   "path": "Source > Environmental > Soil"
+  },
+  "Sphingomonas": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Sphingomonas"
+  },
+  "Sphingomonas jaspsi": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Sphingomonas > Sphingomonas jaspsi"
+  },
+  "Sphingomonas natatoria": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Sphingomonas > Sphingomonas natatoria"
+  },
+  "Sporomusa": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Sporomusa"
+  },
+  "Staphylococcus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Staphylococcus"
+  },
+  "Staphylococcus aureus": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Staphylococcus > Staphylococcus aureus"
+  },
+  "Staphylococcus saprophyticus": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Staphylococcus > Staphylococcus saprophyticus"
+  },
+  "Stigmatella": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Stigmatella"
+  },
+  "Streptococcus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Streptococcus"
+  },
+  "Streptococcus group B": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Streptococcus > Streptococcus group B"
+  },
+  "Streptococcus thermophilus": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Streptococcus > Streptococcus thermophilus"
+  },
+  "Streptomyces": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Streptomyces"
+  },
+  "Streptomyces coelicolor": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Streptomyces > Streptomyces coelicolor"
+  },
+  "Streptomyces maritimus": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Streptomyces > Streptomyces maritimus"
+  },
+  "Synechococcus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Synechococcus"
+  },
+  "Synechococcus elongatus": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Synechococcus > Synechococcus elongatus"
+  },
+  "Synthetic": {
+   "top_bucket": "Synthetic",
+   "level": 1,
+   "path": "Source > Synthetic"
+  },
+  "Tetragenococcus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Tetragenococcus"
+  },
+  "Tetragenococcus halophilus": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Tetragenococcus > Tetragenococcus halophilus"
+  },
+  "Theobroma cacao": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Plant > Theobroma cacao"
+  },
+  "Thermoanaerobacterium": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Thermoanaerobacterium"
+  },
+  "Thermoanaerobacterium saccharolyticum": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Thermoanaerobacterium > Thermoanaerobacterium saccharolyticum"
+  },
+  "Thermobifida": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Thermobifida"
+  },
+  "Thermobifida fusca": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Thermobifida > Thermobifida fusca"
+  },
+  "Tobacco smoke": {
+   "top_bucket": "Environmental",
+   "level": 2,
+   "path": "Source > Environmental > Tobacco smoke"
+  },
+  "Torulaspora": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Torulaspora"
+  },
+  "Torulaspora delbrueckii": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Torulaspora > Torulaspora delbrueckii"
+  },
+  "Vagococcus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Vagococcus"
+  },
+  "Veillonella": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Veillonella"
+  },
+  "Veillonella alcalescens": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Veillonella > Veillonella alcalescens"
+  },
+  "Veillonella parvula": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Veillonella > Veillonella parvula"
+  },
+  "Vibrio ": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Vibrio "
+  },
+  "Wastewater": {
+   "top_bucket": "Environmental",
+   "level": 2,
+   "path": "Source > Environmental > Wastewater"
+  },
+  "Weissella": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Weissella"
+  },
+  "Williopsis": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Fungi > Williopsis"
+  },
+  "Williopsis saturnus": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Williopsis > Williopsis saturnus"
+  },
+  "Wolinella": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Wolinella"
+  },
+  "Wolinella succinogenes": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Wolinella > Wolinella succinogenes"
+  },
+  "Xenorhabdus": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Xenorhabdus"
+  },
+  "Xenorhabdus nematophila": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Xenorhabdus > Xenorhabdus nematophila"
+  },
+  "Yarrowia": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Fungi > Yarrowia"
+  },
+  "Yarrowia lipolytica": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Fungi > Yarrowia > Yarrowia lipolytica"
+  },
+  "Yeast": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Fungi > Yeast"
+  },
+  "Yokenella": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Yokenella"
+  },
+  "Zeaxanthinibacter": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Zeaxanthinibacter"
+  },
+  "Zeaxanthinibacter enoshimensi": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Zeaxanthinibacter > Zeaxanthinibacter enoshimensi"
+  },
+  "Zygosaccharomyces": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Fungi > Zygosaccharomyces"
+  },
+  "Zymomonas": {
+   "top_bucket": "Biological",
+   "level": 3,
+   "path": "Source > Biological > Microbe > Zymomonas"
+  },
+  "Zymomonas mobilis": {
+   "top_bucket": "Biological",
+   "level": 4,
+   "path": "Source > Biological > Microbe > Zymomonas > Zymomonas mobilis"
+  }
+ }
+}
