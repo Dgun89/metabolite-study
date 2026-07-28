@@ -55,7 +55,7 @@ MSI_DB_SOURCES = {"HMDB", "KEGG", "ChEBI", "PubChem"}
 
 def _load_json(name: str) -> dict:
     p = C.WORK / "interim" / name
-    return json.loads(p.read_text()) if p.exists() else {}
+    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
 
 
 def _load_source_hierarchy() -> dict:
@@ -68,7 +68,7 @@ def _load_source_hierarchy() -> dict:
     p = C.HMDB_SOURCE_HIERARCHY
     if not p.exists():
         return {}
-    raw = json.loads(p.read_text()).get("terms", {})
+    raw = json.loads(p.read_text(encoding="utf-8")).get("terms", {})
     return {t.lower(): {"category": v.get("top_bucket"),
                         "level": v.get("level"),
                         "path": v.get("path")}

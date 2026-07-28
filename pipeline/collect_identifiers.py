@@ -146,16 +146,16 @@ def collect_one(ik):
 def main(inchikeys):
     cache = {}
     if CACHE.exists():
-        cache = json.loads(CACHE.read_text())
+        cache = json.loads(CACHE.read_text(encoding="utf-8"))
     todo = [ik for ik in inchikeys if ik not in cache]
     print(f"전체 {len(inchikeys)} | 캐시됨 {len(inchikeys)-len(todo)} | 수집대상 {len(todo)}", flush=True)
     for i, ik in enumerate(todo, 1):
         cache[ik] = collect_one(ik)
         if i % 25 == 0:
-            CACHE.write_text(json.dumps(cache, ensure_ascii=False))
+            CACHE.write_text(json.dumps(cache, ensure_ascii=False), encoding="utf-8")
             print(f"  {i}/{len(todo)} …", flush=True)
         time.sleep(0.34)  # KEGG/ChEBI rate 매너
-    CACHE.write_text(json.dumps(cache, ensure_ascii=False))
+    CACHE.write_text(json.dumps(cache, ensure_ascii=False), encoding="utf-8")
     print(f"완료. 캐시 {len(cache)}개 → {CACHE.name}", flush=True)
     return cache
 
@@ -166,7 +166,7 @@ def main_parallel(inchikeys, workers=6):
     import threading
     cache = {}
     if CACHE.exists():
-        cache = json.loads(CACHE.read_text())
+        cache = json.loads(CACHE.read_text(encoding="utf-8"))
     todo = [ik for ik in inchikeys if ik not in cache]
     print(f"전체 {len(inchikeys)} | 캐시됨 {len(inchikeys)-len(todo)} | 수집대상 {len(todo)} | workers={workers}", flush=True)
     lock = threading.Lock()
@@ -184,9 +184,9 @@ def main_parallel(inchikeys, workers=6):
                 cache[ik] = rec
                 done[0] += 1
                 if done[0] % 50 == 0:
-                    CACHE.write_text(json.dumps(cache, ensure_ascii=False))
+                    CACHE.write_text(json.dumps(cache, ensure_ascii=False), encoding="utf-8")
                     print(f"  {done[0]}/{len(todo)} …", flush=True)
-    CACHE.write_text(json.dumps(cache, ensure_ascii=False))
+    CACHE.write_text(json.dumps(cache, ensure_ascii=False), encoding="utf-8")
     print(f"완료. 캐시 {len(cache)}개 → {CACHE.name}", flush=True)
     return cache
 

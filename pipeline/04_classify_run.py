@@ -38,7 +38,7 @@ from pipeline.classify import classify_row_v2
 
 
 def _load_json(path: Path) -> dict:
-    return json.loads(path.read_text()) if path.exists() else {}
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
 
 
 def classify_species(species: str) -> pd.DataFrame:

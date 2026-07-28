@@ -47,18 +47,18 @@ def query_one(client, name):
 def main(names):
     cache = {}
     if CACHE.exists():
-        cache = json.loads(CACHE.read_text())
+        cache = json.loads(CACHE.read_text(encoding="utf-8"))
     todo = [n for n in names if n not in cache]
     print(f"전체 {len(names)} | 캐시됨 {len(names)-len(todo)} | 수집대상 {len(todo)}", flush=True)
     client = make_client()
     for i, name in enumerate(todo, 1):
         cache[name] = query_one(client, name)
         if i % 25 == 0:
-            CACHE.write_text(json.dumps(cache, ensure_ascii=False))
+            CACHE.write_text(json.dumps(cache, ensure_ascii=False), encoding="utf-8")
             matched = sum(1 for v in cache.values() if v.get("ec_numbers"))
             print(f"  {i}/{len(todo)} … (EC매칭 {matched})", flush=True)
         time.sleep(1.05)  # rate limit
-    CACHE.write_text(json.dumps(cache, ensure_ascii=False))
+    CACHE.write_text(json.dumps(cache, ensure_ascii=False), encoding="utf-8")
     matched = sum(1 for v in cache.values() if v.get("ec_numbers"))
     print(f"완료. 캐시 {len(cache)}개 | EC매칭 {matched}개 → {CACHE.name}", flush=True)
     return cache

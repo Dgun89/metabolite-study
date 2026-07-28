@@ -17,10 +17,10 @@ def join(vals):
 
 def assemble(species):
     df = pd.read_parquet(WORK/"interim"/species/f"{species}_step4_classified.parquet")
-    enz = json.loads((WORK/"interim"/"enzyme_cache.json").read_text())
-    hmdb = json.loads((WORK/"interim"/"hmdb_index.json").read_text())
+    enz = json.loads((WORK/"interim"/"enzyme_cache.json").read_text(encoding="utf-8"))
+    hmdb = json.loads((WORK/"interim"/"hmdb_index.json").read_text(encoding="utf-8"))
     bpath = WORK/"interim"/"brenda_cache.json"
-    brenda = json.loads(bpath.read_text()) if bpath.exists() else {}
+    brenda = json.loads(bpath.read_text(encoding="utf-8")) if bpath.exists() else {}
 
     out = pd.DataFrame()
     out["Database ID"]   = df["id"]

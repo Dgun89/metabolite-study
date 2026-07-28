@@ -92,7 +92,7 @@ def main(target_inchikeys):
             del elem.getparent()[0]
         if n_seen % 50000 == 0:
             print(f"  scanned {n_seen} metabolites, matched {len(index)}", flush=True)
-    OUT.write_text(json.dumps(index, ensure_ascii=False))
+    OUT.write_text(json.dumps(index, ensure_ascii=False), encoding="utf-8")
     print(f"완료. 스캔 {n_seen} | 매칭 {len(index)} → {OUT.name}", flush=True)
     return index
 

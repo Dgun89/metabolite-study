@@ -105,19 +105,19 @@ def collect_one(ik, id_rec):
 
 
 def main(inchikeys):
-    id_cache = json.loads(ID_CACHE.read_text())
+    id_cache = json.loads(ID_CACHE.read_text(encoding="utf-8"))
     cache = {}
     if ENZ_CACHE.exists():
-        cache = json.loads(ENZ_CACHE.read_text())
+        cache = json.loads(ENZ_CACHE.read_text(encoding="utf-8"))
     todo = [ik for ik in inchikeys if ik not in cache and ik in id_cache]
     print(f"전체 {len(inchikeys)} | 캐시됨 {len(cache)} | 수집대상 {len(todo)}", flush=True)
     for i, ik in enumerate(todo, 1):
         cache[ik] = collect_one(ik, id_cache[ik])
         if i % 25 == 0:
-            ENZ_CACHE.write_text(json.dumps(cache, ensure_ascii=False))
+            ENZ_CACHE.write_text(json.dumps(cache, ensure_ascii=False), encoding="utf-8")
             print(f"  {i}/{len(todo)} …", flush=True)
         time.sleep(0.3)
-    ENZ_CACHE.write_text(json.dumps(cache, ensure_ascii=False))
+    ENZ_CACHE.write_text(json.dumps(cache, ensure_ascii=False), encoding="utf-8")
     print(f"완료. 캐시 {len(cache)}개 → {ENZ_CACHE.name}", flush=True)
     return cache
 
@@ -125,10 +125,10 @@ def main(inchikeys):
 def main_parallel(inchikeys, workers=6):
     from concurrent.futures import ThreadPoolExecutor, as_completed
     import threading
-    id_cache = json.loads(ID_CACHE.read_text())
+    id_cache = json.loads(ID_CACHE.read_text(encoding="utf-8"))
     cache = {}
     if ENZ_CACHE.exists():
-        cache = json.loads(ENZ_CACHE.read_text())
+        cache = json.loads(ENZ_CACHE.read_text(encoding="utf-8"))
     # kegg_id 또는 chebi_id가 있는 것만 수집 대상 (없으면 효소 조회 불가)
     todo = [ik for ik in inchikeys if ik not in cache and ik in id_cache
             and (id_cache[ik].get("kegg_id") or id_cache[ik].get("chebi_id"))]
@@ -146,9 +146,9 @@ def main_parallel(inchikeys, workers=6):
             with lock:
                 cache[ik] = rec; done[0] += 1
                 if done[0] % 25 == 0:
-                    ENZ_CACHE.write_text(json.dumps(cache, ensure_ascii=False))
+                    ENZ_CACHE.write_text(json.dumps(cache, ensure_ascii=False), encoding="utf-8")
                     print(f"  {done[0]}/{len(todo)} …", flush=True)
-    ENZ_CACHE.write_text(json.dumps(cache, ensure_ascii=False))
+    ENZ_CACHE.write_text(json.dumps(cache, ensure_ascii=False), encoding="utf-8")
     print(f"완료. 캐시 {len(cache)}개 → {ENZ_CACHE.name}", flush=True)
     return cache
 

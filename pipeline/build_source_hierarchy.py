@@ -83,7 +83,7 @@ def collect_edges_from_xml(xml_path, progress=50000):
 
 def collect_edges_from_tree(tree_path):
     """explore_hmdb.py가 만든 온톨로지 트리 JSON에서 Source 서브트리 엣지 파생(빠름)."""
-    tree = json.loads(Path(tree_path).read_text())
+    tree = json.loads(Path(tree_path).read_text(encoding="utf-8"))
 
     def find(node, target):
         if node["term"] == target:
@@ -167,7 +167,7 @@ def main():
                       "path": " > ".join(v["path"])}
                   for t, v in sorted(hierarchy.items())},
     }
-    out_path.write_text(json.dumps(payload, ensure_ascii=False, indent=1))
+    out_path.write_text(json.dumps(payload, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"저장: {out_path} ({len(hierarchy)} terms, 버킷 {sorted(direct)})")
 
 
