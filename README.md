@@ -29,11 +29,11 @@ Primary key throughout is `inchikey` (full 27-char); `inchikey14` (14-char skele
 | `compounds` | 1,721 | one per unique InChIKey | inchikey, inchikey14, smiles, inchi, formula, compound_name, db_support_level, db_support_evidence, mmmdb_detected, mmmdb_n_tissues |
 | `compound_external_ids` | 8,092 | one per (compound, DB, id) | inchikey, source, external_id, + provenance |
 | `compound_origins` | 23,278 | one per (compound, origin fact) | inchikey, source, origin_label, origin_category, origin_level, + provenance |
-| `compound_classification` | 1,721 | one verdict per compound | inchikey, classification, classification_basis, conflict_flag, conflicting_sources, source_verdicts, + ruleset provenance |
+| `compound_classification` | 1,721 | one row per compound | inchikey, drug_food, drug_food_basis, classification, classification_basis, conflict_flag, conflicting_sources, source_verdicts, + ruleset provenance |
 | `compound_enzymes` | 6,592 | one per (compound, EC) | inchikey, ec, source, + provenance |
-| `compound_species` | 1,930 | one per (compound, dataset) | inchikey, species ∈ {human, mouse_serum, mouse_feces}, cnp_id |
+| `compound_species` | 1,930 | one per (compound, dataset) | inchikey, species ∈ {human_serum, mouse_serum, mouse_feces}, cnp_id |
 
-Classification distribution: **endogenous 290 / exogenous 647 / unverified 784**; **169** compounds carry a source conflict, **58** are MMMDB-confirmed endogenous. DB-support level (structure-consensus proxy, not spectral MSI): **L2 667 / L3 1,054**.
+**Classification is v4 (2026-07-27 advisor meeting): priority rules dropped — the column now lists each DB's verdict in parallel** (e.g. `ChEBI:exogenous; HMDB:endogenous; COCONUT:endogenous`) instead of forcing one label, because each DB measures a different axis (ChEBI=produced / HMDB=detected / COCONUT=isolated-from). Evidence counts are therefore non-exclusive: **has-endogenous-evidence 290 / has-exogenous-evidence 816 / unverified 784**; **169** compounds carry an endo↔exo conflict, **58** are MMMDB-confirmed endogenous. A **`drug_food`** flag (drug = DrugBank/DrugCentral present, food = FooDB present) sits before `classification` as a display-only 1st-pass filter — rows are never dropped (FooDB presence is a *detection* axis and includes many endogenous compounds). DB-support level (structure-consensus proxy, not spectral MSI): **L2 667 / L3 1,054**.
 
 External-id coverage by source: COCONUT 2,446 · PubChem 1,636 · EPA CompTox 681 · ChEBI 655 · ChEMBL 464 · HMDB 390 · KEGG 261 · FooDB 254 · RCSB PDB 242 · PDBe 240 · Wikipedia 213 · BindingDB 208 · DrugBank 193 · LIPID MAPS 87 · DrugCentral 72 · Guide to Pharmacology 44 · SwissLipids 6. (Most are UniChem cross-links already returned during identifier collection — stored, not re-fetched.)
 
@@ -46,9 +46,9 @@ Code is species-agnostic; the dataset is selected by `config.get_paths(species)`
 1. **`01_coconut_join.py`** — join seed CNP ids against the local COCONUT CSV (738,827 rows, streamed): exact full-id match → base-id match with deterministic lowest-version selection (stereo ambiguity flagged) → PEP merge → PubChem name-search fallback for unmatched. **100% InChIKey coverage** on all three datasets. → `interim/{species}/{species}_step2_coconut.parquet`.
 2. **`collect_identifiers.py`** — parallel identifier collection keyed on unique InChIKeys (1,721): UniChem `POST /unichem/api/v1/compounds` (all cross-links), ChEBI (roles), PubChem PUG REST (CID). Provenance-logged.
 3. **`build_hmdb_index.py`** — stream the 6.1 GB HMDB XML with `iterparse`, extracting ontology source / protein / biospecimen for target InChIKeys.
-4. **`04_classify_run.py`** + **`classify.py`** — rule-based endogenous/exogenous with per-source verdicts. `classify_row_v3()` adds an **E0** rule (MMMDB tissue detection → endogenous, highest priority) on top of v2's ChEBI/HMDB/COCONUT rules, and emits `conflict_flag` / `conflicting_sources` when sources disagree. Legacy `classify_row()` / `classify_row_v2()` retained for back-compat.
+4. **`04_classify_run.py`** + **`classify.py`** — endogenous/exogenous with per-source verdicts. **`classify_row_v4()`** (current) drops the priority rules entirely: it reuses each DB's independent verdict but **lists them in parallel** (`ChEBI:…; HMDB:…; COCONUT:…; MMMDB:…`) rather than forcing one label — different DBs measure different axes, so collapsing them mangles the axis. `conflict_flag` / `conflicting_sources` still flag endo↔exo disagreement. Earlier `classify_row()` / `_v2()` / `_v3()` are **kept frozen** for back-compat and before/after audit (we stack rule versions, never overwrite them).
 5. **`collect_enzymes.py`** — KEGG `link/enzyme` EC + Reactome catalyst mapping. **`collect_brenda.py`** — BRENDA SOAP (zeep), name → EC; auth `sha256(password)`, ≤ 1 req/sec.
-6. **`normalize.py`** — assemble the 6 long-format normalized tables; recompute classification with `classify_row_v3`, assign the DB-support level (`db_support_level`/`db_support_evidence`; structure-consensus proxy, not spectral MSI), merge UniChem cross-links and MMMDB tissue origins. Explicit row sort: classification (endo→exo→unverified) → compound_name → inchikey.
+6. **`normalize.py`** — assemble the 6 long-format normalized tables; recompute classification with `classify_row_v4` (parallel per-DB verdicts) + the `drug_food` display flag, assign the DB-support level (`db_support_level`/`db_support_evidence`; structure-consensus proxy, not spectral MSI), merge UniChem cross-links and MMMDB tissue origins. Explicit row sort: endogenous-evidence-first → compound_name → inchikey.
 7. **`export_view.py`** — build the wide human-readable view and write the 4-sheet xlsx (Data / Legend / Summary / Classification Rules) via `format_excel.py`, with color-grouped column headers and clickable DB-homepage links on the External DB ID headers (COCONUT…LIPID MAPS).
 8. **`compare_legacy.py`** — reliability comparison against the original step29 DB on the common InChIKey intersection.
 
@@ -68,9 +68,9 @@ python verify_reproduction.py         # compare against REPRODUCE_reference_fing
 
 ### Exports (`data/export/*.xlsx`)
 
-Per-dataset and combined workbooks, InChIKey-first column layout, headers color-grouped by category (Basic Identifiers / Dataset Membership / External DB IDs / Classification / Classification Sources / Classification Metadata / DB Support / Classification Conflicts / Enzyme Information). The External DB ID headers (COCONUT, PubChem, KEGG, HMDB, ChEBI, DrugBank, FooDB, LIPID MAPS) are clickable links to each database's homepage. A dedicated **Classification Rules** sheet documents the endogenous-dominant priority order (E0>E1>E2>E3>X1>X2>X3>U) and how `conflict_flag`/`conflicting_sources` are derived.
+Per-dataset and combined workbooks, InChIKey-first column layout, headers color-grouped by category (Basic Identifiers / Dataset Membership / External DB IDs / **Drug / Food** / Classification / Classification Sources / Classification Metadata / DB Support / Classification Conflicts / Enzyme Information). The External DB ID headers (COCONUT, PubChem, KEGG, HMDB, ChEBI, DrugBank, FooDB, LIPID MAPS) are clickable links to each database's homepage. A dedicated **Classification Rules** sheet documents the **v4 method** — each DB's verdict is listed in parallel (no priority ordering), what axis each DB reads (ChEBI=produced / HMDB=detected / COCONUT=isolated-from / MMMDB=tissue-measured), and how `conflict_flag`/`conflicting_sources` are derived.
 
-- `human_final.xlsx` — 316 rows
+- `human_serum_final.xlsx` — 316 rows
 - `mouse_serum_final.xlsx` — 715 rows
 - `mouse_feces_final.xlsx` — 899 rows
 - `combined_final.xlsx` — 1,721 unique InChIKeys, with a `datasets` column recording which dataset(s) each compound comes from.
@@ -142,6 +142,11 @@ metabolite-study/
 
 ### Progress log
 
+- **2026-07-27** — advisor-meeting schema changes (human/mouse scope):
+  - renamed dataset key `human` → `human_serum` (`config.SPECIES`, seed/source maps, comparison target). `data/human/` raw folder name kept per the raw-preservation rule; only the label changed.
+  - added a **`drug_food`** display flag (+ `drug_food_basis`) before `classification`: drug = DrugBank/DrugCentral present, food = FooDB present. 1st-pass filter marker only — no rows dropped (363 flagged: food 164 / drug 109 / drug+food 90).
+  - **classification v4** — dropped the priority rules. The column now lists each DB's verdict in parallel (`ChEBI:…; HMDB:…; COCONUT:…; MMMDB:…`) instead of forcing one label. `classify_row_v1..v3` kept frozen in `classify.py`; v3 outputs archived at `data/normalized/_v3_frozen_20260727/` for before/after audit. Summary counts became non-exclusive evidence tallies + a conflict row. Classification Rules sheet rewritten to describe the v4 method.
+
 - **2026-07-23** — HMDB Source subtree + origin categorization:
   - profiled the full 6.1 GB `hmdb_metabolites.xml` (217,920 records) by streaming parse — see `docs/HMDB_structure_guide.md`
   - established that HMDB `Disposition > Source` is **not** an endo/exo dichotomy: 6 sibling labels (Food 146,742 / Endogenous 145,377 / Biological 144,377 / Synthetic 193 / Environmental 162 / **Exogenous 6**); 93% of source-tagged compounds carry 3 labels at once (Biological & Endogenous & Food, 139,977)
@@ -186,11 +191,11 @@ metabolite-study/
 | `compounds` | 1,721 | 고유 InChIKey 1개 | inchikey, inchikey14, smiles, inchi, formula, compound_name, db_support_level, db_support_evidence, mmmdb_detected, mmmdb_n_tissues |
 | `compound_external_ids` | 8,092 | (화합물, DB, id) 1개 | inchikey, source, external_id, + provenance |
 | `compound_origins` | 23,278 | (화합물, 기원 사실) 1개 | inchikey, source, origin_label, origin_category, origin_level, + provenance |
-| `compound_classification` | 1,721 | 화합물당 판정 1개 | inchikey, classification, classification_basis, conflict_flag, conflicting_sources, source_verdicts, + ruleset provenance |
+| `compound_classification` | 1,721 | 화합물당 1행 | inchikey, drug_food, drug_food_basis, classification, classification_basis, conflict_flag, conflicting_sources, source_verdicts, + ruleset provenance |
 | `compound_enzymes` | 6,592 | (화합물, EC) 1개 | inchikey, ec, source, + provenance |
-| `compound_species` | 1,930 | (화합물, 데이터셋) 1개 | inchikey, species ∈ {human, mouse_serum, mouse_feces}, cnp_id |
+| `compound_species` | 1,930 | (화합물, 데이터셋) 1개 | inchikey, species ∈ {human_serum, mouse_serum, mouse_feces}, cnp_id |
 
-분류 분포: **endogenous 290 / exogenous 647 / unverified 784**; **169**개 화합물에 소스 충돌, **58**개 MMMDB 확인 내인성. DB 지지 등급(구조 합의 프록시, 분광 MSI 아님): **L2 667 / L3 1,054**.
+**분류는 v4(2026-07-27 교수님 회의): 우선순위 규칙 폐기 — 컬럼이 이제 각 DB의 판정을 병렬로 나열**한다(예: `ChEBI:exogenous; HMDB:endogenous; COCONUT:endogenous`). 각 DB가 서로 다른 축(ChEBI=만들었나 / HMDB=검출됐나 / COCONUT=분리됐나)을 재므로 하나로 합치지 않는다. 따라서 근거 카운트는 배타적이지 않다: **내인성 근거 포함 290 / 외인성 근거 포함 816 / unverified 784**; **169**개 화합물에 endo↔exo 충돌, **58**개 MMMDB 확인 내인성. classification **앞**에 **`drug_food`** 플래그(drug = DrugBank/DrugCentral 존재, food = FooDB 존재)가 1차 필터 표시로 놓이지만 **행은 지우지 않는다**(FooDB 존재는 *검출* 축이라 내인성 화합물도 다수 포함). DB 지지 등급(구조 합의 프록시, 분광 MSI 아님): **L2 667 / L3 1,054**.
 
 소스별 외부 id 커버리지: COCONUT 2,446 · PubChem 1,636 · EPA CompTox 681 · ChEBI 655 · ChEMBL 464 · HMDB 390 · KEGG 261 · FooDB 254 · RCSB PDB 242 · PDBe 240 · Wikipedia 213 · BindingDB 208 · DrugBank 193 · LIPID MAPS 87 · DrugCentral 72 · Guide to Pharmacology 44 · SwissLipids 6. (대부분 identifier 수집 시 UniChem이 이미 반환한 교차링크 — 재수집 없이 저장.)
 
@@ -203,9 +208,9 @@ metabolite-study/
 1. **`01_coconut_join.py`** — seed CNP id를 로컬 COCONUT CSV(738,827행, 스트리밍)와 조인: full-id 정확매칭 → base-id 매칭+최저버전 결정론적 선택(입체 애매 시 플래그) → PEP 병합 → 미매칭은 PubChem 이름검색 fallback. **3종 모두 100% InChIKey 커버리지.** → `interim/{species}/{species}_step2_coconut.parquet`.
 2. **`collect_identifiers.py`** — 고유 InChIKey(1,721) 기준 병렬 수집: UniChem `POST /unichem/api/v1/compounds`(전체 교차링크), ChEBI(roles), PubChem PUG REST(CID). Provenance 기록.
 3. **`build_hmdb_index.py`** — 6.1GB HMDB XML을 `iterparse` 스트리밍, 대상 InChIKey의 ontology source/protein/biospecimen 추출.
-4. **`04_classify_run.py`** + **`classify.py`** — 소스별 판정 규칙 기반 내인성/외인성. `classify_row_v3()`는 v2의 ChEBI/HMDB/COCONUT 규칙 위에 **E0**(MMMDB 조직 검출→내인성, 최우선)를 추가하고, 소스 불일치 시 `conflict_flag` / `conflicting_sources`를 기록. 기존 `classify_row()` / `classify_row_v2()`는 하위호환 유지.
+4. **`04_classify_run.py`** + **`classify.py`** — 소스별 판정 기반 내인성/외인성. **`classify_row_v4()`**(현재)는 우선순위 규칙을 완전히 폐기하고 각 DB의 독립 판정을 **병렬로 나열**한다(`ChEBI:…; HMDB:…; COCONUT:…; MMMDB:…`) — DB마다 축이 달라 하나로 합치면 축을 뭉갠다. `conflict_flag` / `conflicting_sources`는 여전히 endo↔exo 불일치를 표시한다. 이전 `classify_row()` / `_v2()` / `_v3()`는 하위호환·전후 비교를 위해 **박제로 보존**(규칙 버전을 덮어쓰지 않고 쌓는다).
 5. **`collect_enzymes.py`** — KEGG `link/enzyme` EC + Reactome catalyst. **`collect_brenda.py`** — BRENDA SOAP(zeep), 이름 → EC; 인증 `sha256(password)`, ≤ 1 req/sec.
-6. **`normalize.py`** — 6개 long-format 정규화 테이블 조립; `classify_row_v3`로 분류 재계산, DB 지지 등급 부여(`db_support_level`/`db_support_evidence`; 구조 합의 프록시, 분광 MSI 아님), UniChem 교차링크·MMMDB 조직 기원 병합. 명시적 행정렬: 분류(endo→exo→unverified) → compound_name → inchikey.
+6. **`normalize.py`** — 6개 long-format 정규화 테이블 조립; `classify_row_v4`(DB별 병렬 판정) + `drug_food` 표시 플래그로 분류 재계산, DB 지지 등급 부여(`db_support_level`/`db_support_evidence`; 구조 합의 프록시, 분광 MSI 아님), UniChem 교차링크·MMMDB 조직 기원 병합. 명시적 행정렬: 내인성 근거 우선 → compound_name → inchikey.
 7. **`export_view.py`** — 넓은 형태 뷰 생성, `format_excel.py`로 4시트 xlsx(Data / Legend / Summary / Classification Rules) 작성, 컬럼 헤더 색상 그룹화 + External DB ID 헤더(COCONUT…LIPID MAPS)에 DB 홈페이지 클릭 링크.
 8. **`compare_legacy.py`** — 기존 step29 DB와 공통 InChIKey 교집합에서 신뢰성 대조.
 
@@ -225,9 +230,9 @@ python verify_reproduction.py         # REPRODUCE_reference_fingerprints.json �
 
 ### Export (`data/export/*.xlsx`)
 
-데이터셋별·통합 워크북, InChIKey 맨앞 컬럼 배치, 카테고리별 헤더 색상 그룹(Basic Identifiers / Dataset Membership / External DB IDs / Classification / Classification Sources / Classification Metadata / DB Support / Classification Conflicts / Enzyme Information). External DB ID 헤더(COCONUT, PubChem, KEGG, HMDB, ChEBI, DrugBank, FooDB, LIPID MAPS)는 각 DB 홈페이지로 가는 클릭 링크다. 별도의 **Classification Rules** 시트가 내인성 우세 우선순위(E0>E1>E2>E3>X1>X2>X3>U)와 `conflict_flag`/`conflicting_sources` 산출 방식을 명시한다.
+데이터셋별·통합 워크북, InChIKey 맨앞 컬럼 배치, 카테고리별 헤더 색상 그룹(Basic Identifiers / Dataset Membership / External DB IDs / **Drug / Food** / Classification / Classification Sources / Classification Metadata / DB Support / Classification Conflicts / Enzyme Information). External DB ID 헤더(COCONUT, PubChem, KEGG, HMDB, ChEBI, DrugBank, FooDB, LIPID MAPS)는 각 DB 홈페이지로 가는 클릭 링크다. 별도의 **Classification Rules** 시트가 **v4 방식**을 명시한다 — 각 DB 판정을 병렬로 나열(우선순위 없음), 각 DB가 읽는 축(ChEBI=만들었나 / HMDB=검출됐나 / COCONUT=분리됐나 / MMMDB=조직실측), `conflict_flag`/`conflicting_sources` 산출 방식.
 
-- `human_final.xlsx` — 316행
+- `human_serum_final.xlsx` — 316행
 - `mouse_serum_final.xlsx` — 715행
 - `mouse_feces_final.xlsx` — 899행
 - `combined_final.xlsx` — 고유 InChIKey 1,721개, 각 화합물의 출처 데이터셋을 `datasets` 컬럼에 기록.
@@ -298,6 +303,11 @@ metabolite-study/
 ```
 
 ### 진행 로그
+
+- **2026-07-27** — 교수님 회의 스키마 변경 (사람/쥐 범위로 축소):
+  - 데이터셋 키 `human` → `human_serum` 리네임(`config.SPECIES`, seed/source 맵, 대조 대상). `data/human/` raw 폴더명은 raw 보존 원칙상 유지, 라벨만 변경.
+  - classification **앞**에 **`drug_food`** 표시 플래그(+ `drug_food_basis`) 추가: drug = DrugBank/DrugCentral 존재, food = FooDB 존재. 1차 필터 표시일 뿐 행 삭제 없음(363개 표시: food 164 / drug 109 / drug+food 90).
+  - **classification v4** — 우선순위 규칙 폐기. 컬럼이 각 DB 판정을 병렬 나열(`ChEBI:…; HMDB:…; COCONUT:…; MMMDB:…`), 단일 라벨 강제 안 함. `classify_row_v1..v3`는 `classify.py`에 박제 보존; v3 산출물은 전후 비교용으로 `data/normalized/_v3_frozen_20260727/`에 보관. Summary 카운트는 배타형 → 근거포함 집계 + conflict 행. Classification Rules 시트도 v4 방식으로 재작성.
 
 - **2026-07-23** — HMDB Source 서브트리 + 기원 카테고리화:
   - 6.1GB `hmdb_metabolites.xml`(217,920 레코드)을 스트리밍 파싱으로 전수 프로파일 — `docs/HMDB_structure_guide.md` 참조

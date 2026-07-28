@@ -304,9 +304,11 @@ def apply_format(filepath: str):
 
 def _build_classification_rules_sheet(wb):
     """
-    conflicting_sources / classification 우선순위 규칙을 명시하는 시트.
+    classification(v4)이 어떻게 만들어지는지 명시하는 시트.
     영어 블록 먼저, 이어서 한국어 블록. 내용은 pipeline/classify.py의
-    classify_row_v3() 실제 로직과 1:1 대응(추측 아님).
+    classify_row_v4() 실제 로직과 1:1 대응(추측 아님).
+
+    v4(2026-07-27 회의): 우선순위 규칙 폐기. 각 DB의 판정을 그대로 나열한다.
     """
     ws = wb.create_sheet("Classification Rules")
 
@@ -339,38 +341,34 @@ def _build_classification_rules_sheet(wb):
         r += 1
 
     # ================= ENGLISH =================
-    line("Classification & Conflict-Resolution Rules", H1); r += 1
-    line("How the single `classification` label is decided when databases disagree "
-         "(source: pipeline/classify.py → classify_row_v3).", ITAL); r += 1
+    line("Classification method (v4) — each DB's verdict, in parallel", H1); r += 1
+    line("The `classification` column does NOT pick one winner. It lists each database's "
+         "own verdict side by side, because each DB measures a different axis "
+         "(source: pipeline/classify.py → classify_row_v4). Set by the 2026-07-27 advisor meeting.", ITAL); r += 1
 
-    line("Priority order (endogenous-dominant — first matching rule wins):", H2)
-    for j, h in enumerate(["Rule", "Condition", "Verdict"], start=1):
+    line("What signal each database reads (its axis):", H2)
+    for j, h in enumerate(["Database", "Endogenous signal → / Exogenous signal", "Axis"], start=1):
         c = ws.cell(row=r, column=j, value=h); c.font = BOLD; c.fill = HEAD_FILL
     r += 1
-    rule_row("E0", "Detected in real mouse tissue (MMMDB, >=1 tissue)", "endogenous", ENDO_FILL)
-    rule_row("E1", "ChEBI role contains 'human metabolite'", "endogenous", ENDO_FILL)
-    rule_row("E2", "HMDB source contains 'Endogenous'", "endogenous", ENDO_FILL)
-    rule_row("E3", "COCONUT organisms contain Homo sapiens", "endogenous", ENDO_FILL)
-    rule_row("X1", "HMDB source is Exogenous/Food/Drug/Microbial/Plant/Toxin/Cosmetic (no Endogenous)", "exogenous", EXO_FILL)
-    rule_row("X2", "ChEBI roles present, but none is 'human metabolite'", "exogenous", EXO_FILL)
-    rule_row("X3", "COCONUT organisms present, but non-human only", "exogenous", EXO_FILL)
-    rule_row("U",  "None of the above (no organism/role/tissue evidence)", "unverified", UNV_FILL)
+    rule_row("ChEBI",   "role 'human metabolite' → endo / any other role → exo", "produced by", ENDO_FILL)
+    rule_row("HMDB",    "source 'Endogenous' → endo / Food/Drug/Microbial/Plant/Toxin → exo", "detected in", EXO_FILL)
+    rule_row("COCONUT", "organisms incl. Homo sapiens → endo / non-human only → exo", "isolated from", EXO_FILL)
+    rule_row("MMMDB",   "detected in real mouse tissue (>=1) → endo (endogenous only)", "measured in tissue", ENDO_FILL)
     r += 1
 
-    line("Tie-break: the FIRST matching endogenous rule (E0>E1>E2>E3) is applied "
-         "before any exogenous rule. So a compound with COCONUT=exogenous, "
-         "ChEBI=endogenous, HMDB=exogenous is labelled ENDOGENOUS (E1 fires first), "
-         "even though 2 of 3 sources say exogenous.", None); r += 1
+    line("Output form: `classification` = 'ChEBI:exogenous; HMDB:endogenous; COCONUT:endogenous' "
+         "— every DB that has a verdict is listed (order ChEBI>HMDB>COCONUT>MMMDB is for reading "
+         "only, NOT a priority). If no DB can decide → 'unverified'.", None); r += 1
 
-    line("Why endogenous-dominant? (two principles):", H2)
-    line("  1. A positive endogenous signal is a specific, curated assertion "
-         "(e.g. ChEBI's 'human metabolite' role, or actual tissue detection in MMMDB). "
-         "An exogenous verdict is often inferred from the ABSENCE of such a signal, "
-         "which is weaker evidence.", None)
-    line("  2. Conflicts are never silently merged away. The final single label is a "
-         "convenience; `conflict_flag` (True/False) and `conflicting_sources` "
-         "(e.g. 'ChEBI=endogenous;HMDB=exogenous') preserve the full disagreement "
-         "for audit.", None); r += 1
+    line("Why no single label? (the project's core principle):", H2)
+    line("  1. Each DB answers a different question (produced / detected / isolated-from). "
+         "Forcing one endo-or-exo answer collapses those distinct axes into a false consensus.", None)
+    line("  2. So we never pick a winner — we show all the evidence and let the reader judge. "
+         "`conflict_flag` + `conflicting_sources` still surface endo↔exo disagreement for audit; "
+         "they no longer drive a merge.", None); r += 1
+
+    line("Rule history is stacked, not overwritten: v1–v3 (priority-based single label) are kept "
+         "frozen in classify.py for back-compat and before/after comparison. v4 is the current output.", ITAL); r += 1
 
     line("conflict_flag = True  when at least one source votes endogenous AND at least "
          "one votes exogenous (MMMDB tissue detection counts as an endogenous vote).", None)
@@ -378,35 +376,34 @@ def _build_classification_rules_sheet(wb):
          "'ChEBI=endogenous;COCONUT=exogenous;HMDB=exogenous'.", None); r += 2
 
     # ================= KOREAN =================
-    line("분류 · 충돌 해소 규칙 (한국어)", H1); r += 1
-    line("데이터베이스 간 기원 판정이 엇갈릴 때 단일 `classification` 라벨을 어떻게 "
-         "정하는가 (출처: pipeline/classify.py → classify_row_v3).", ITAL); r += 1
+    line("분류 방식 (v4) — 각 DB의 판정을 그대로 나열", H1); r += 1
+    line("`classification` 컬럼은 하나의 정답을 고르지 않는다. 각 DB가 서로 다른 축을 재기 "
+         "때문에, 각 DB의 판정을 나란히 나열한다 "
+         "(출처: pipeline/classify.py → classify_row_v4). 2026-07-27 교수님 회의 결정.", ITAL); r += 1
 
-    line("우선순위 (내인성 우세 — 먼저 걸리는 규칙이 최종값):", H2)
-    for j, h in enumerate(["규칙", "조건", "판정"], start=1):
+    line("각 DB가 읽는 신호(그 DB의 축):", H2)
+    for j, h in enumerate(["데이터베이스", "내인성 신호 / 외인성 신호", "축"], start=1):
         c = ws.cell(row=r, column=j, value=h); c.font = BOLD; c.fill = HEAD_FILL
     r += 1
-    rule_row("E0", "MMMDB에서 실제 쥐 조직에 검출 (조직 1개 이상)", "endogenous", ENDO_FILL)
-    rule_row("E1", "ChEBI role에 'human metabolite' 포함", "endogenous", ENDO_FILL)
-    rule_row("E2", "HMDB source에 'Endogenous' 포함", "endogenous", ENDO_FILL)
-    rule_row("E3", "COCONUT organisms에 Homo sapiens 포함", "endogenous", ENDO_FILL)
-    rule_row("X1", "HMDB source가 Exogenous/Food/Drug/Microbial/Plant/Toxin/Cosmetic (Endogenous 없음)", "exogenous", EXO_FILL)
-    rule_row("X2", "ChEBI role은 있으나 'human metabolite' 아님", "exogenous", EXO_FILL)
-    rule_row("X3", "COCONUT organisms는 있으나 비인간만", "exogenous", EXO_FILL)
-    rule_row("U",  "위 근거 전무 (organism/role/조직 정보 없음)", "unverified", UNV_FILL)
+    rule_row("ChEBI",   "role에 'human metabolite' → endo / 다른 role → exo", "누가 만들었나", ENDO_FILL)
+    rule_row("HMDB",    "source가 'Endogenous' → endo / Food/Drug/Microbial/Plant/Toxin → exo", "어디서 검출됐나", EXO_FILL)
+    rule_row("COCONUT", "organisms에 Homo sapiens 포함 → endo / 비인간만 → exo", "무엇에서 분리됐나", EXO_FILL)
+    rule_row("MMMDB",   "실제 쥐 조직에 검출(1개 이상) → endo (내인성 전용)", "조직에서 실측", ENDO_FILL)
     r += 1
 
-    line("Tie-break: 내인성 규칙(E0>E1>E2>E3)이 외인성 규칙보다 먼저 적용된다. "
-         "따라서 COCONUT=exogenous, ChEBI=endogenous, HMDB=exogenous인 화합물은 "
-         "3개 중 2개가 exogenous라도 E1이 먼저 걸려 ENDOGENOUS로 판정된다.", None); r += 1
+    line("출력 형태: `classification` = 'ChEBI:exogenous; HMDB:endogenous; COCONUT:endogenous' "
+         "— 판정이 있는 DB를 모두 나열한다(ChEBI>HMDB>COCONUT>MMMDB 순서는 가독성용일 뿐 "
+         "우선순위 아님). 아무 DB도 판정 못 하면 → 'unverified'.", None); r += 1
 
-    line("왜 내인성 우세인가? (두 원칙):", H2)
-    line("  1. 내인성 신호(예: ChEBI의 큐레이션된 'human metabolite' role, MMMDB의 실제 "
-         "조직 검출)는 구체적·명시적 근거다. 반면 외인성 판정은 그런 신호의 '부재'에서 "
-         "추론되는 경우가 많아 근거가 약하다.", None)
-    line("  2. 충돌은 절대 조용히 뭉개지 않는다. 최종 단일 라벨은 편의값일 뿐이며, "
-         "`conflict_flag`(True/False)와 `conflicting_sources`(예: "
-         "'ChEBI=endogenous;HMDB=exogenous')가 원래의 불일치를 감사용으로 모두 보존한다.", None); r += 1
+    line("왜 단일 라벨을 안 만드나? (이 프로젝트의 핵심 원칙):", H2)
+    line("  1. 각 DB는 서로 다른 질문(만들었나 / 검출됐나 / 분리됐나)에 답한다. "
+         "endo·exo 중 하나로 강제하면 이 서로 다른 축을 뭉개 가짜 합의를 만든다.", None)
+    line("  2. 그래서 정답을 고르지 않는다 — 근거를 다 보여주고 읽는 사람이 판단하게 한다. "
+         "`conflict_flag`·`conflicting_sources`는 endo↔exo 불일치를 감사용으로 여전히 노출하지만, "
+         "더 이상 병합을 강제하지 않는다.", None); r += 1
+
+    line("규칙 이력은 덮어쓰지 않고 쌓는다: v1~v3(우선순위 기반 단일 라벨)는 하위호환·전후 비교를 위해 "
+         "classify.py에 박제로 남아있다. v4가 현재 출력이다.", ITAL); r += 1
 
     line("conflict_flag = True  : endogenous 근거와 exogenous 근거가 동시에 존재할 때 "
          "(MMMDB 조직 검출은 endogenous 표로 계산).", None)
