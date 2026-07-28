@@ -27,7 +27,7 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from pipeline import config as C
-from pipeline.classify import classify_row_v2, classify_row_v3, assign_msi
+from pipeline.classify import classify_row_v2, classify_row_v3, classify_row_v4, assign_msi
 
 ORG_SPLIT = re.compile(r"[;|]")
 
@@ -258,10 +258,12 @@ def normalize() -> dict:
         return "; ".join(tags), "; ".join(basis)
 
     # ---------- compound_classification (1행/inchikey, 병합 입력으로 재계산) ----------
-    # classify_row_v3: MMMDB(쥐 조직 검출)를 최우선 endogenous 근거(E0)로 반영.
+    # classify_row_v4 (2026-07-27 회의): 우선순위 규칙 폐기. 각 DB 판정을 그대로 나열
+    # ("ChEBI:endogenous; HMDB:endogenous; COCONUT:exogenous; MMMDB:endogenous").
+    # v3(단일 라벨)는 classify.py에 박제로 남아있고, 여기서는 v4를 쓴다.
     cls_rows = []
     for ik, a in agg.items():
-        v = classify_row_v3(sorted(a["roles"]), sorted(a["hmdb"]),
+        v = classify_row_v4(sorted(a["roles"]), sorted(a["hmdb"]),
                             "; ".join(sorted(a["orgs"])),
                             mmmdb_tissues=mmmdb_tissues.get(ik, 0))
         df_tag, df_basis = _drug_food(ik)
@@ -276,7 +278,7 @@ def normalize() -> dict:
             "mmmdb_detected": v["mmmdb_detected"],
             "mmmdb_n_tissues": v["mmmdb_n_tissues"],
             "classified_at": now,
-            "ruleset_version": "classify.py:rules-v3",
+            "ruleset_version": "classify.py:rules-v4",
         })
     cls_df = pd.DataFrame(cls_rows).reset_index(drop=True)
 
@@ -343,10 +345,18 @@ def normalize() -> dict:
     comp["db_support_evidence"] = msi_evi
 
     # ---------- 명시적 행 정렬 ----------
-    # 분류(endogenous→exogenous→unverified) → 화합물명(대소문자 무시) → InChIKey.
-    CLS_ORDER = {"endogenous": 0, "exogenous": 1, "unverified": 2}
+    # v4는 classification이 "ChEBI:endogenous; HMDB:exogenous" 나열 문자열이므로
+    # 단일 라벨 순위가 아니라 근거 성격으로 정렬한다:
+    #   0 endogenous 근거 있음(포함) → 1 exogenous만 → 2 그 외/unverified.
     cls_map = dict(zip(cls_df["inchikey"], cls_df["classification"]))
-    comp["_cls_rank"] = comp["inchikey"].map(lambda k: CLS_ORDER.get(cls_map.get(k), 3))
+    def _cls_rank_fn(k):
+        s = str(cls_map.get(k, "")).lower()
+        if "endogenous" in s:
+            return 0
+        if "exogenous" in s:
+            return 1
+        return 2
+    comp["_cls_rank"] = comp["inchikey"].map(_cls_rank_fn)
     comp["_name_key"] = comp["compound_name"].fillna("").astype(str).str.lower()
     comp = (comp.sort_values(["_cls_rank", "_name_key", "inchikey"])
             .drop(columns=["_cls_rank", "_name_key"]).reset_index(drop=True))

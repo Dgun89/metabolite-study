@@ -168,3 +168,53 @@ def assign_msi(has_inchikey, db_id_count, mmmdb_detected=False):
     if db >= 1:
         return "L4"
     return "L5"
+
+
+def classify_row_v4(chebi_roles, hmdb_source, coconut_organisms, mmmdb_tissues=0):
+    """
+    5단계: 우선순위 규칙 폐기 — 각 DB의 판정을 그대로 나열한다 (2026-07-27 회의).
+
+    배경: v1~v3는 여러 DB의 기원 신호를 우선순위(E1>E2>E3>X1...)로 눌러
+    **하나의 최종 라벨**을 강제했다. 그러나 각 DB는 서로 다른 축
+    (ChEBI=produced / HMDB=detected / COCONUT=isolated-from)으로 기원을 말하므로,
+    하나로 합치면 축을 뭉갠다. v4는 판정을 강제하지 않고 DB별 판정을 병렬로 노출한다.
+
+    - classification 컬럼 = "ChEBI:endogenous; HMDB:endogenous; COCONUT:exogenous;
+      MMMDB:endogenous" 형태(판정 근거가 있는 DB만; 정렬은 고정 우선순위 표시용 아님).
+    - 아무 DB도 판정 못 하면 "unverified".
+    - conflict_flag/conflicting_sources는 유지 — endo·exo가 동시에 존재하는지의
+      감사 신호는 여전히 유용하다(어느 쪽이 '맞다'고 고르지 않을 뿐).
+
+    v3(classify_row_v3)는 하위호환/박제를 위해 그대로 둔다. v4는 그 위에 쌓는다.
+
+    반환: v3와 동일 키 + source_verdicts(감사용). classification/basis만 의미가 바뀜:
+      classification : "DB:verdict; ..." 병렬 나열 (또는 "unverified")
+      classification_basis : 사람이 읽는 요약(동일 나열 + MMMDB 조직수)
+    """
+    # v3의 verdicts 계산을 그대로 재사용(축별 판정 산출) — 단, 최종 라벨 강제는 버린다.
+    v3 = classify_row_v3(chebi_roles, hmdb_source, coconut_organisms, mmmdb_tissues)
+    verdicts = dict(v3["source_verdicts"])  # {source: 'endogenous'|'exogenous'}
+
+    # DB 판정을 고정 순서로 나열(가독성용 순서일 뿐, 우선순위 아님).
+    ORDER = ["ChEBI", "HMDB", "COCONUT", "MMMDB"]
+    items = ([(s, verdicts[s]) for s in ORDER if s in verdicts]
+             + [(s, v) for s, v in sorted(verdicts.items()) if s not in ORDER])
+    if items:
+        classification = "; ".join(f"{s}:{v}" for s, v in items)
+    else:
+        classification = "unverified"
+
+    # basis: 나열 + MMMDB 조직수(있으면) — 판정이 아니라 '무엇을 근거로 나열했나'.
+    basis = classification
+    if v3["mmmdb_detected"]:
+        basis += f"  [MMMDB: {v3['mmmdb_n_tissues']} tissue(s)]"
+
+    return {
+        "classification": classification,
+        "classification_basis": basis,
+        "conflict_flag": v3["conflict_flag"],
+        "conflicting_sources": v3["conflicting_sources"],
+        "source_verdicts": verdicts,
+        "mmmdb_detected": v3["mmmdb_detected"],
+        "mmmdb_n_tissues": v3["mmmdb_n_tissues"],
+    }

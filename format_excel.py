@@ -234,6 +234,9 @@ def apply_format(filepath: str):
     has_reactome = hv('reactome_catalysts')
     has_brenda   = hv('brenda_enzymes')
 
+    # v4 classification 나열 문자열(소문자) — endo/exo 근거 포함 여부 카운트에 사용.
+    _cls = df['classification'].fillna('').astype(str).str.lower()
+
     rows = [
         ("Overview",       "Total compounds", total,                        "100%"),
         ("Overview",       "InChIKey",        df['InChIKey'].notna().sum(), f"{df['InChIKey'].notna().sum()/total*100:.1f}%"),
@@ -242,9 +245,13 @@ def apply_format(filepath: str):
         ("External DB IDs","KEGG",            df['KEGG'].notna().sum(),     f"{df['KEGG'].notna().sum()/total*100:.1f}%"),
         ("External DB IDs","HMDB",            df['HMDB'].notna().sum(),     f"{df['HMDB'].notna().sum()/total*100:.1f}%"),
         ("External DB IDs","ChEBI",           df['ChEBI'].notna().sum(),    f"{df['ChEBI'].notna().sum()/total*100:.1f}%"),
-        ("Classification", "Endogenous",      (df['classification']=='endogenous').sum(), f"{(df['classification']=='endogenous').sum()/total*100:.1f}%"),
-        ("Classification", "Exogenous",       (df['classification']=='exogenous').sum(),  f"{(df['classification']=='exogenous').sum()/total*100:.1f}%"),
-        ("Classification", "Unverified",      (df['classification']=='unverified').sum(), f"{(df['classification']=='unverified').sum()/total*100:.1f}%"),
+        # v4: classification은 "ChEBI:endogenous; HMDB:exogenous" 나열 문자열.
+        # 한 화합물에 endo·exo 근거가 동시에 있을 수 있어 배타 카운트가 아니라
+        # '해당 근거를 포함하는 화합물 수'로 센다(합계가 total을 넘을 수 있음).
+        ("Classification", "Has endogenous evidence", int(_cls.str.contains('endogenous').sum()), f"{int(_cls.str.contains('endogenous').sum())/total*100:.1f}%"),
+        ("Classification", "Has exogenous evidence",  int(_cls.str.contains('exogenous').sum()),  f"{int(_cls.str.contains('exogenous').sum())/total*100:.1f}%"),
+        ("Classification", "Unverified (no evidence)", int((_cls=='unverified').sum()), f"{int((_cls=='unverified').sum())/total*100:.1f}%"),
+        ("Classification", "Conflict (endo & exo)",   int(df['conflict_flag'].astype(str).str.lower().isin(['true','1']).sum()) if 'conflict_flag' in df.columns else 0, ""),
     ]
 
     if 'origin_evidence' in df.columns:
