@@ -110,6 +110,9 @@ def build_wide(tables: dict, inchikeys, with_datasets: bool = False) -> pd.DataF
     out["DrugBank"]      = m(ext_val("DrugBank"))
     out["FooDB"]         = m(ext_val("FooDB"))
     out["LIPID MAPS"]    = m(ext_val("LIPID MAPS"))
+    # --- Drug/Food 신호 (classification 앞 1차 필터 표시, 삭제 아님) ---
+    out["drug_food"]            = base["inchikey"].map(cls_i["drug_food"]).fillna("").values
+    out["drug_food_basis"]      = base["inchikey"].map(cls_i["drug_food_basis"]).fillna("").values
     # --- Classification ---
     out["classification"]       = base["inchikey"].map(cls_i["classification"]).fillna("unverified").values
     out["hmdb_origin"]          = m(ori_val("HMDB"))

@@ -238,6 +238,25 @@ def normalize() -> dict:
     origins_df = pd.DataFrame(origins).drop_duplicates(
         ["inchikey", "source", "origin_label"]).reset_index(drop=True)
 
+    # ---------- Drug/Food 신호(표시 전용, 필터 아님 — 2026-07-27 회의) ----------
+    # DrugBank/DrugCentral 존재 → drug, FooDB 존재 → food. 행은 삭제하지 않고
+    # 외부 신호를 '표시'만 한다(되돌릴 수 있게). 근거 DB를 drug_food_basis에 남긴다.
+    # 주의: FooDB '있음'은 detection 축이라 내인성 화합물도 다수 포함 → 표시일 뿐,
+    #       이 컬럼만으로 exogenous를 단정하지 않는다(각 DB 축은 classification에서 별도 표기).
+    DRUG_SITES = {"DrugBank", "DrugCentral"}
+    FOOD_SITES = {"FooDB"}
+    ext_by_ik = ext_df.groupby("inchikey")["source"].apply(set).to_dict()
+    def _drug_food(ik):
+        srcs = ext_by_ik.get(ik, set())
+        d = sorted(srcs & DRUG_SITES)
+        f = sorted(srcs & FOOD_SITES)
+        tags, basis = [], []
+        if d:
+            tags.append("drug");  basis.append("drug:" + ",".join(d))
+        if f:
+            tags.append("food");  basis.append("food:" + ",".join(f))
+        return "; ".join(tags), "; ".join(basis)
+
     # ---------- compound_classification (1행/inchikey, 병합 입력으로 재계산) ----------
     # classify_row_v3: MMMDB(쥐 조직 검출)를 최우선 endogenous 근거(E0)로 반영.
     cls_rows = []
@@ -245,8 +264,11 @@ def normalize() -> dict:
         v = classify_row_v3(sorted(a["roles"]), sorted(a["hmdb"]),
                             "; ".join(sorted(a["orgs"])),
                             mmmdb_tissues=mmmdb_tissues.get(ik, 0))
+        df_tag, df_basis = _drug_food(ik)
         cls_rows.append({
             "inchikey": ik,
+            "drug_food": df_tag,
+            "drug_food_basis": df_basis,
             "classification": v["classification"],
             "basis": v["classification_basis"],
             "conflict_flag": v["conflict_flag"],

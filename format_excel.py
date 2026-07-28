@@ -18,6 +18,11 @@ GROUPS = {
         "color": "C6EFCE",
         "description": "Cross-reference IDs from external databases (UniChem-resolved)"
     },
+    "Drug / Food": {
+        "columns": ["drug_food", "drug_food_basis"],
+        "color": "FFF2CC",
+        "description": "External drug/food signals (DrugBank/DrugCentral=drug, FooDB=food). Display-only flag, not a filter — rows are never dropped"
+    },
     "Classification": {
         "columns": ["classification"],
         "color": "FFEB9C",
@@ -63,6 +68,8 @@ COL_SOURCE = {
     "DrugBank"             : "UniChem",
     "FooDB"                : "UniChem",
     "LIPID MAPS"           : "UniChem",
+    "drug_food"            : "DrugBank + DrugCentral + FooDB",
+    "drug_food_basis"      : "DrugBank + DrugCentral + FooDB",
     "classification"       : "ChEBI + HMDB + COCONUT + MMMDB",
     "hmdb_origin"          : "HMDB",
     "coconut_organisms"    : "COCONUT",
@@ -106,6 +113,8 @@ COL_DESC = {
     "DrugBank"             : "DrugBank ID (cross-linked via UniChem)",
     "FooDB"                : "FooDB ID (cross-linked via UniChem)",
     "LIPID MAPS"           : "LIPID MAPS ID (cross-linked via UniChem)",
+    "drug_food"            : "External drug/food signal (drug = DrugBank/DrugCentral present, food = FooDB present). Display-only flag placed before classification; rows are NOT filtered out. Note: FooDB presence is a detection axis and includes many endogenous compounds",
+    "drug_food_basis"      : "Which DB(s) triggered the drug/food flag (e.g. drug:DrugBank / food:FooDB)",
     "classification"       : "Final classification: endogenous / exogenous / unverified",
     "hmdb_origin"          : "HMDB origin field (Endogenous / Food / Drug etc.)",
     "coconut_organisms"    : "Organisms associated with compound in COCONUT (used to infer classification)",
