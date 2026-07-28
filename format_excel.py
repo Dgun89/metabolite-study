@@ -135,9 +135,57 @@ COL_DESC = {
     "brenda_enzymes"       : "EC numbers from BRENDA (semicolon-separated; source: BRENDA Enzyme Database)",
 }
 
+def check_column_registration(df_columns):
+    """export되는 실제 컬럼과 이 파일의 등록 딕셔너리(GROUPS/COL_SOURCE/COL_DESC)를
+    대조해, '한 곳만 바꾸고 나머지를 빠뜨린' 종류의 불일치를 자동으로 잡는다.
+
+    이 검사가 있으면 사람이 눈으로 컬럼을 하나하나 확인할 필요가 없다.
+    과거에 이걸로 걸렸어야 했던 것:
+      - hmdb_origin_category: GROUPS 미등록 → extras로 밀려 맨 끝 컬럼(AD)에 배치
+      - DrugCentral: 근거로 인용되는데 export 컬럼이 없어 감사 불가
+
+    반환: 경고 문자열 리스트(빈 리스트면 이상 없음).
+    """
+    cols = set(df_columns)
+    grouped = {c for g in GROUPS.values() for c in g["columns"]}
+    warns = []
+
+    # (1) GROUPS에 없어서 맨 끝 'extras'로 밀리는 컬럼
+    unplaced = [c for c in df_columns if c not in grouped]
+    if unplaced:
+        warns.append(f"[배치] GROUPS 미등록 → 맨 끝으로 밀림: {unplaced} "
+                     f"(format_excel.py GROUPS의 적절한 그룹에 추가하세요)")
+
+    # (2) 표시되는 컬럼인데 소스/설명 메타가 없음 → Legend에서 비어 보임
+    no_source = [c for c in df_columns if c not in COL_SOURCE]
+    no_desc = [c for c in df_columns if c not in COL_DESC]
+    if no_source:
+        warns.append(f"[Legend] COL_SOURCE 미등록(출처 칸 빔): {no_source}")
+    if no_desc:
+        warns.append(f"[Legend] COL_DESC 미등록(설명 칸 빔): {no_desc}")
+
+    # (3) drug/food 판정 소스로 쓰이는 DB인데 그 ID 컬럼이 export에 없음 → 근거 감사 불가
+    #     (normalize.py의 DRUG_SITES/FOOD_SITES와 동일 집합; 근거는 컬럼으로 노출돼야 함)
+    evidence_dbs = {"DrugBank", "DrugCentral", "FooDB"}
+    missing_evidence = sorted(evidence_dbs - cols)
+    if "drug_food" in cols and missing_evidence:
+        warns.append(f"[감사] drug_food 판정 근거 DB인데 컬럼이 없음: {missing_evidence} "
+                     f"(근거를 감사할 수 없음 → export_view.py에 컬럼 추가)")
+
+    return warns
+
+
 def apply_format(filepath: str):
     import pandas as pd
     df = pd.read_excel(filepath)
+
+    # 컬럼 등록 일관성 자동 검사 (한 곳 바꾸고 딸린 곳 빠뜨린 것을 stderr로 경고)
+    _warns = check_column_registration(list(df.columns))
+    if _warns:
+        import sys
+        print("⚠ format_excel 컬럼 일관성 경고:", file=sys.stderr)
+        for _w in _warns:
+            print("   " + _w, file=sys.stderr)
 
     # GROUPS 정의 순서대로 컬럼 재배치 (Legend 계층과 물리 순서 일치)
     ordered = [c for g in GROUPS.values() for c in g["columns"] if c in df.columns]
