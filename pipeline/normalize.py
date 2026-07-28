@@ -240,22 +240,23 @@ def normalize() -> dict:
 
     # ---------- Drug/Food 신호(표시 전용, 필터 아님 — 2026-07-27 회의) ----------
     # DrugBank/DrugCentral 존재 → drug, FooDB 존재 → food. 행은 삭제하지 않고
-    # 외부 신호를 '표시'만 한다(되돌릴 수 있게). 근거 DB를 drug_food_basis에 남긴다.
+    # 외부 신호를 '표시'만 한다(되돌릴 수 있게). 근거 DB는 별도 컬럼
+    # (DrugBank/DrugCentral/FooDB)이 직접 보여주므로 basis 문자열은 두지 않는다.
     # 주의: FooDB '있음'은 detection 축이라 내인성 화합물도 다수 포함 → 표시일 뿐,
     #       이 컬럼만으로 exogenous를 단정하지 않는다(각 DB 축은 classification에서 별도 표기).
     DRUG_SITES = {"DrugBank", "DrugCentral"}
     FOOD_SITES = {"FooDB"}
     ext_by_ik = ext_df.groupby("inchikey")["source"].apply(set).to_dict()
     def _drug_food(ik):
+        # 근거 DB는 별도 컬럼(DrugBank/DrugCentral/FooDB)이 직접 보여주므로
+        # basis 문자열은 폐기. 여기서는 drug/food 태그(결론)만 만든다.
         srcs = ext_by_ik.get(ik, set())
-        d = sorted(srcs & DRUG_SITES)
-        f = sorted(srcs & FOOD_SITES)
-        tags, basis = [], []
-        if d:
-            tags.append("drug");  basis.append("drug:" + ",".join(d))
-        if f:
-            tags.append("food");  basis.append("food:" + ",".join(f))
-        return "; ".join(tags), "; ".join(basis)
+        tags = []
+        if srcs & DRUG_SITES:
+            tags.append("drug")
+        if srcs & FOOD_SITES:
+            tags.append("food")
+        return "; ".join(tags)
 
     # ---------- compound_classification (1행/inchikey, 병합 입력으로 재계산) ----------
     # classify_row_v4 (2026-07-27 회의): 우선순위 규칙 폐기. 각 DB 판정을 그대로 나열
@@ -266,11 +267,10 @@ def normalize() -> dict:
         v = classify_row_v4(sorted(a["roles"]), sorted(a["hmdb"]),
                             "; ".join(sorted(a["orgs"])),
                             mmmdb_tissues=mmmdb_tissues.get(ik, 0))
-        df_tag, df_basis = _drug_food(ik)
+        df_tag = _drug_food(ik)
         cls_rows.append({
             "inchikey": ik,
             "drug_food": df_tag,
-            "drug_food_basis": df_basis,
             "classification": v["classification"],
             "basis": v["classification_basis"],
             "conflict_flag": v["conflict_flag"],

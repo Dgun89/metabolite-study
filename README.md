@@ -29,7 +29,7 @@ Primary key throughout is `inchikey` (full 27-char); `inchikey14` (14-char skele
 | `compounds` | 1,721 | one per unique InChIKey | inchikey, inchikey14, smiles, inchi, formula, compound_name, db_support_level, db_support_evidence, mmmdb_detected, mmmdb_n_tissues |
 | `compound_external_ids` | 8,092 | one per (compound, DB, id) | inchikey, source, external_id, + provenance |
 | `compound_origins` | 23,278 | one per (compound, origin fact) | inchikey, source, origin_label, origin_category, origin_level, + provenance |
-| `compound_classification` | 1,721 | one row per compound | inchikey, drug_food, drug_food_basis, classification, classification_basis, conflict_flag, conflicting_sources, source_verdicts, + ruleset provenance |
+| `compound_classification` | 1,721 | one row per compound | inchikey, drug_food, classification, classification_basis, conflict_flag, conflicting_sources, source_verdicts, + ruleset provenance |
 | `compound_enzymes` | 6,592 | one per (compound, EC) | inchikey, ec, source, + provenance |
 | `compound_species` | 1,930 | one per (compound, dataset) | inchikey, species ∈ {human_serum, mouse_serum, mouse_feces}, cnp_id |
 
@@ -144,6 +144,13 @@ metabolite-study/
 
 ### Progress log
 
+- **2026-07-28** — portability + drug/food column cleanup:
+  - **UTF-8 pinned** on all `read_text`/`write_text` calls across the pipeline — `Path.read_text()` defaults to the OS locale (cp1252 on Windows) and raised `UnicodeDecodeError` on UTF-8 JSON caches. Now runs on Windows.
+  - **export filenames** changed from `{name}_final.xlsx` to a `yymmdd` creation stamp (`combined_260728.xlsx`) — the export is regenerated every run, not a frozen "final". `compare_legacy.py` now globs the latest date-stamped snapshot.
+  - pipeline input caches (`.work/interim/*.json`, `*_step4_classified.parquet`) **force-tracked in git** as pinned reproduction inputs, so a clone can run `normalize.py` + `export_view.py` without re-running collection.
+  - **`DrugCentral` column added** to the export — it was cited as drug/food evidence but had no column, so the cited source could not be audited (72 compounds carry a DrugCentral ID).
+  - **`drug_food_basis` removed** — the `DrugBank`/`DrugCentral`/`FooDB` ID columns now show the evidence directly, making the packed `drug:DB1,DB2; food:DB3` string redundant. `drug_food` (the verdict) is kept.
+
 - **2026-07-27** — advisor-meeting schema changes (human/mouse scope):
   - renamed dataset key `human` → `human_serum` (`config.SPECIES`, seed/source maps, comparison target). `data/human/` raw folder name kept per the raw-preservation rule; only the label changed.
   - added a **`drug_food`** display flag (+ `drug_food_basis`) before `classification`: drug = DrugBank/DrugCentral present, food = FooDB present. 1st-pass filter marker only — no rows dropped (363 flagged: food 164 / drug 109 / drug+food 90).
@@ -193,7 +200,7 @@ metabolite-study/
 | `compounds` | 1,721 | 고유 InChIKey 1개 | inchikey, inchikey14, smiles, inchi, formula, compound_name, db_support_level, db_support_evidence, mmmdb_detected, mmmdb_n_tissues |
 | `compound_external_ids` | 8,092 | (화합물, DB, id) 1개 | inchikey, source, external_id, + provenance |
 | `compound_origins` | 23,278 | (화합물, 기원 사실) 1개 | inchikey, source, origin_label, origin_category, origin_level, + provenance |
-| `compound_classification` | 1,721 | 화합물당 1행 | inchikey, drug_food, drug_food_basis, classification, classification_basis, conflict_flag, conflicting_sources, source_verdicts, + ruleset provenance |
+| `compound_classification` | 1,721 | 화합물당 1행 | inchikey, drug_food, classification, classification_basis, conflict_flag, conflicting_sources, source_verdicts, + ruleset provenance |
 | `compound_enzymes` | 6,592 | (화합물, EC) 1개 | inchikey, ec, source, + provenance |
 | `compound_species` | 1,930 | (화합물, 데이터셋) 1개 | inchikey, species ∈ {human_serum, mouse_serum, mouse_feces}, cnp_id |
 
@@ -307,6 +314,13 @@ metabolite-study/
 ```
 
 ### 진행 로그
+
+- **2026-07-28** — 이식성 + drug/food 컬럼 정리:
+  - 파이프라인 전체의 `read_text`/`write_text`에 **UTF-8 고정** — `Path.read_text()`가 OS 로케일(Windows는 cp1252) 기본이라 UTF-8 JSON 캐시에서 `UnicodeDecodeError` 발생했음. 이제 Windows에서도 실행됨.
+  - **export 파일명**을 `{name}_final.xlsx` → `yymmdd` 생성일 스탬프(`combined_260728.xlsx`)로 변경 — export는 매 실행 재생성되는 뷰라 동결본 'final'이 아니기 때문. `compare_legacy.py`는 최신 날짜 스냅샷을 glob으로 자동 선택.
+  - 파이프라인 입력 캐시(`.work/interim/*.json`, `*_step4_classified.parquet`)를 **git에 강제 추적** — clone 후 수집 재실행 없이 `normalize.py` + `export_view.py`만으로 재현 가능.
+  - **`DrugCentral` 컬럼 추가** — drug/food 근거로 인용되는데 컬럼이 없어 근거 감사가 불가능했음(72개 화합물에 DrugCentral ID 존재).
+  - **`drug_food_basis` 제거** — `DrugBank`/`DrugCentral`/`FooDB` ID 컬럼이 근거를 직접 보여줘서, 뭉친 `drug:DB1,DB2; food:DB3` 문자열이 중복이 됨. 결론인 `drug_food`는 유지.
 
 - **2026-07-27** — 교수님 회의 스키마 변경 (사람/쥐 범위로 축소):
   - 데이터셋 키 `human` → `human_serum` 리네임(`config.SPECIES`, seed/source 맵, 대조 대상). `data/human/` raw 폴더명은 raw 보존 원칙상 유지, 라벨만 변경.
