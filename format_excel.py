@@ -29,7 +29,7 @@ GROUPS = {
         "description": "Final classification: endogenous / exogenous / unverified"
     },
     "Classification Sources": {
-        "columns": ["hmdb_origin", "coconut_organisms", "chebi_roles"],
+        "columns": ["hmdb_origin", "hmdb_origin_category", "coconut_organisms", "chebi_roles"],
         "color": "FFD9B3",
         "description": "Source data used to determine classification"
     },
@@ -72,6 +72,7 @@ COL_SOURCE = {
     "drug_food"            : "DrugBank + DrugCentral + FooDB",
     "classification"       : "ChEBI + HMDB + COCONUT + MMMDB",
     "hmdb_origin"          : "HMDB",
+    "hmdb_origin_category" : "HMDB",
     "coconut_organisms"    : "COCONUT",
     "chebi_roles"          : "ChEBI",
     "classification_basis" : "ChEBI + COCONUT + MMMDB",
@@ -118,6 +119,7 @@ COL_DESC = {
     "drug_food"            : "External drug/food signal (drug = DrugBank/DrugCentral present, food = FooDB present). Display-only flag placed before classification; rows are NOT filtered out. Note: FooDB presence is a detection axis and includes many endogenous compounds",
     "classification"       : "Final classification: endogenous / exogenous / unverified",
     "hmdb_origin"          : "HMDB origin field (Endogenous / Food / Drug etc.)",
+    "hmdb_origin_category" : "HMDB origin rolled up into 6 buckets (species names dropped) — the origin 'type' at a glance",
     "coconut_organisms"    : "Organisms associated with compound in COCONUT (used to infer classification)",
     "chebi_roles"          : "Role classification from ChEBI (semicolon-separated)",
     "classification_basis" : "Reason behind classification (e.g. MMMDB: detected in mouse tissue / ChEBI: human metabolite)",
