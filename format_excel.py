@@ -14,7 +14,7 @@ GROUPS = {
         "description": "Which source datasets this compound appears in (combined view only)"
     },
     "External DB IDs": {
-        "columns": ["COCONUT", "PubChem", "KEGG", "HMDB", "ChEBI", "DrugBank", "FooDB", "LIPID MAPS"],
+        "columns": ["COCONUT", "PubChem", "KEGG", "HMDB", "ChEBI", "DrugBank", "DrugCentral", "FooDB", "LIPID MAPS"],
         "color": "C6EFCE",
         "description": "Cross-reference IDs from external databases (UniChem-resolved)"
     },
@@ -66,6 +66,7 @@ COL_SOURCE = {
     "HMDB"                 : "HMDB",
     "ChEBI"                : "ChEBI",
     "DrugBank"             : "UniChem",
+    "DrugCentral"          : "UniChem",
     "FooDB"                : "UniChem",
     "LIPID MAPS"           : "UniChem",
     "drug_food"            : "DrugBank + DrugCentral + FooDB",
@@ -96,6 +97,7 @@ DB_HOMEPAGE = {
     "HMDB"      : "https://hmdb.ca/",
     "ChEBI"     : "https://www.ebi.ac.uk/chebi/",
     "DrugBank"  : "https://go.drugbank.com/",
+    "DrugCentral": "https://drugcentral.org/",
     "FooDB"     : "https://foodb.ca/",
     "LIPID MAPS": "https://www.lipidmaps.org/",
 }
@@ -111,6 +113,7 @@ COL_DESC = {
     "HMDB"                 : "Human Metabolome Database ID",
     "ChEBI"                : "Chemical Entities of Biological Interest ID",
     "DrugBank"             : "DrugBank ID (cross-linked via UniChem)",
+    "DrugCentral"          : "DrugCentral ID (approved-drug DB, cross-linked via UniChem). Cited by drug_food_basis, so shown here for audit",
     "FooDB"                : "FooDB ID (cross-linked via UniChem)",
     "LIPID MAPS"           : "LIPID MAPS ID (cross-linked via UniChem)",
     "drug_food"            : "External drug/food signal (drug = DrugBank/DrugCentral present, food = FooDB present). Display-only flag placed before classification; rows are NOT filtered out. Note: FooDB presence is a detection axis and includes many endogenous compounds",

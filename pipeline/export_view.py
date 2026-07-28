@@ -114,6 +114,7 @@ def build_wide(tables: dict, inchikeys, with_datasets: bool = False) -> pd.DataF
     out["HMDB"]          = m(ext_val("HMDB"))
     out["ChEBI"]         = m(ext_val("ChEBI"))
     out["DrugBank"]      = m(ext_val("DrugBank"))
+    out["DrugCentral"]   = m(ext_val("DrugCentral"))  # drug_food_basis가 근거로 인용하므로 컬럼으로도 노출(감사 가능)
     out["FooDB"]         = m(ext_val("FooDB"))
     out["LIPID MAPS"]    = m(ext_val("LIPID MAPS"))
     # --- Drug/Food 신호 (classification 앞 1차 필터 표시, 삭제 아님) ---
