@@ -94,7 +94,7 @@ def run():
 
     # 대조 대상: reproduced mouse_feces(핵심 — 구 legacy) + human/mouse_serum(종간)
     targets = [("mouse_feces", "재현 mouse_feces(쥐 분변) vs 기존 step29 (핵심 신뢰성 검증)"),
-               ("human", "human vs 기존 step29"),
+               ("human_serum", "human_serum vs 기존 step29"),
                ("mouse_serum", "mouse_serum(쥐 혈청) vs 기존 step29")]
 
     results = {}

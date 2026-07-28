@@ -9,7 +9,7 @@
 
 사용법:
     from pipeline.config import get_paths
-    P = get_paths("human")   # "mouse_serum" | "mouse_feces"
+    P = get_paths("human_serum")   # "mouse_serum" | "mouse_feces"
 """
 import os
 from pathlib import Path
@@ -32,21 +32,22 @@ NORMALIZED_DIR = BASE / "data" / "normalized"
 EXPORT_DIR = BASE / "data" / "export"
 
 # 데이터셋(시료 유래):
-#   human       : 사람 시료
+#   human_serum : 사람 혈청 (기존 "human" — 2026-07-27 회의 결정으로 개명)
 #   mouse_serum : 쥐 혈청 (기존 "mouse")
 #   mouse_feces : 쥐 분변 (기존 "legacy" — step29로 정리된 902 화합물 세트)
-SPECIES = ("human", "mouse_serum", "mouse_feces")
+# 주의: 시료 폴더(data/human/)는 raw 보존 원칙에 따라 이름 유지. 종 키만 human_serum.
+SPECIES = ("human_serum", "mouse_serum", "mouse_feces")
 
 # 각 데이터셋의 시드(원본에서 CNP/PEP id + 이름만 추출한 표준 시드 CSV).
 RAW_SEEDS = {
-    "human":       BASE / "data" / "human"       / "raw" / "human_seed.csv",
+    "human_serum": BASE / "data" / "human"       / "raw" / "human_seed.csv",
     "mouse_serum": BASE / "data" / "mouse_serum" / "raw" / "mouse_serum_seed.csv",
     "mouse_feces": BASE / "data" / "mouse_feces" / "raw" / "mouse_feces_seed.csv",
 }
 
 # 원본 annotation 파일(참고·시드 추출용, raw 원칙에 따라 수정 금지).
 RAW_SOURCES = {
-    "human":       BASE / "data" / "human"       / "raw" / "annotation_output_hito.xlsx",
+    "human_serum": BASE / "data" / "human"       / "raw" / "annotation_output_hito.xlsx",
     "mouse_serum": BASE / "data" / "mouse_serum" / "raw" / "annotation_output_mouse.xlsx",
     "mouse_feces": BASE / "data" / "mouse_feces" / "raw" / "metabolites_completed.xlsx",
 }

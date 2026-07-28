@@ -31,7 +31,7 @@ from pipeline import config as C
 
 # 원본 파일별 (CNP id 컬럼, 화합물명 컬럼)
 SOURCE_COLS = {
-    "human":       ("id", "annotation"),
+    "human_serum": ("id", "annotation"),
     "mouse_serum": ("id", "annotation"),
     "mouse_feces": ("Database ID", "QualitativeResults"),
 }
