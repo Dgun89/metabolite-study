@@ -99,10 +99,13 @@ def run():
 
     results = {}
     for sp, _desc in targets:
-        fp = export / f"{sp}_final.xlsx"
-        if not fp.exists():
-            print(f"  [skip] {fp} 없음")
+        # export 파일명은 날짜 스탬프({sp}_yymmdd.xlsx)라 고정명이 아님 →
+        # 가장 최근(파일명 정렬 = 날짜 오름차순의 마지막) 스냅샷을 자동 선택.
+        cands = sorted(export.glob(f"{sp}_[0-9][0-9][0-9][0-9][0-9][0-9].xlsx"))
+        if not cands:
+            print(f"  [skip] {export}/{sp}_*.xlsx 없음")
             continue
+        fp = cands[-1]
         new = load_valid(str(fp), sheet="Sheet1")
         results[sp] = {name: compare(new, leg, key)
                        for key, name in [("ik", "full"), ("sk", "skeleton")]}
@@ -113,7 +116,7 @@ def run():
     # ---------- 리포트 ----------
     lines = ["# Legacy 신뢰성 대조 리포트", "",
              f"- 기준(baseline): `{Path(lp).relative_to(C.BASE)}` — 기존 수기 큐레이션 DB",
-             f"- 대조(reproduced): `data/export/{{species}}_final.xlsx` — 새 InChIKey 정규화 파이프라인 재현",
+             f"- 대조(reproduced): `data/export/{{species}}_yymmdd.xlsx` (최신 스냅샷 자동 선택) — 새 InChIKey 정규화 파이프라인 재현",
              f"- 대조 축: 공통 InChIKey 교집합 (full 27자 / skeleton 14자)", "",
              "분류 라벨(endogenous/exogenous/unverified) 일치율과 외부 식별자·효소 커버리지 일치를 계산한다.",
              ""]

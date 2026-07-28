@@ -6,8 +6,9 @@
 재사용해 Data/Legend/Summary 3시트 + 그룹 색상·범례를 적용한다.
 
 출력 (data/export/):
-  human_final.xlsx / mouse_serum_final.xlsx / mouse_feces_final.xlsx  (데이터셋별 뷰)
-  combined_final.xlsx                                                 (3종 통합 뷰)
+  {species}_yymmdd.xlsx  (데이터셋별 뷰, 예: human_serum_260728.xlsx)
+  combined_yymmdd.xlsx   (3종 통합 뷰)
+  * 파일명의 yymmdd는 생성일 스탬프 — export는 계속 재생성되는 뷰라 'final'이 아님.
 
 새 스키마 표면: conflict_flag / conflicting_sources 컬럼을 뒤에 추가(표시).
 
@@ -17,7 +18,12 @@
     python pipeline/export_view.py combined       # 통합 뷰만
 """
 import sys
+from datetime import datetime
 from pathlib import Path
+
+# export 파일명에 붙는 생성일 스탬프 (yymmdd, '-' 없음).
+# export는 계속 재생성되는 뷰이므로 'final'이 아니라 '언제 만든 스냅샷'임을 파일명에 명시.
+STAMP = datetime.now().strftime("%y%m%d")
 
 import pandas as pd
 
@@ -147,7 +153,7 @@ def export_species(tables: dict, species: str) -> Path:
     iks = spc[spc["species"] == species]["inchikey"].unique()
     df = build_wide(tables, iks)
     C.EXPORT_DIR.mkdir(parents=True, exist_ok=True)
-    dest = C.EXPORT_DIR / f"{species}_final.xlsx"
+    dest = C.EXPORT_DIR / f"{species}_{STAMP}.xlsx"
     df.to_excel(dest, index=False)
     from format_excel import apply_format
     apply_format(str(dest))
@@ -159,7 +165,7 @@ def export_combined(tables: dict) -> Path:
     iks = tables["compounds"]["inchikey"].unique()
     df = build_wide(tables, iks, with_datasets=True)
     C.EXPORT_DIR.mkdir(parents=True, exist_ok=True)
-    dest = C.EXPORT_DIR / "combined_final.xlsx"
+    dest = C.EXPORT_DIR / f"combined_{STAMP}.xlsx"
     df.to_excel(dest, index=False)
     from format_excel import apply_format
     apply_format(str(dest))

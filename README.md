@@ -70,10 +70,12 @@ python verify_reproduction.py         # compare against REPRODUCE_reference_fing
 
 Per-dataset and combined workbooks, InChIKey-first column layout, headers color-grouped by category (Basic Identifiers / Dataset Membership / External DB IDs / **Drug / Food** / Classification / Classification Sources / Classification Metadata / DB Support / Classification Conflicts / Enzyme Information). The External DB ID headers (COCONUT, PubChem, KEGG, HMDB, ChEBI, DrugBank, FooDB, LIPID MAPS) are clickable links to each database's homepage. A dedicated **Classification Rules** sheet documents the **v4 method** — each DB's verdict is listed in parallel (no priority ordering), what axis each DB reads (ChEBI=produced / HMDB=detected / COCONUT=isolated-from / MMMDB=tissue-measured), and how `conflict_flag`/`conflicting_sources` are derived.
 
-- `human_serum_final.xlsx` — 316 rows
-- `mouse_serum_final.xlsx` — 715 rows
-- `mouse_feces_final.xlsx` — 899 rows
-- `combined_final.xlsx` — 1,721 unique InChIKeys, with a `datasets` column recording which dataset(s) each compound comes from.
+Export filenames carry a `yymmdd` creation-date stamp (no `-`), e.g. `combined_260728.xlsx`, because the export is a view that is regenerated on every run — it is **not** a frozen "final". Row counts below are for the 2026-07-28 snapshot.
+
+- `human_serum_yymmdd.xlsx` — 316 rows
+- `mouse_serum_yymmdd.xlsx` — 715 rows
+- `mouse_feces_yymmdd.xlsx` — 899 rows
+- `combined_yymmdd.xlsx` — 1,721 unique InChIKeys, with a `datasets` column recording which dataset(s) each compound comes from.
 
 Combined dataset membership: mouse_feces only 795 · mouse_serum only 533 · human only 199 · human+mouse_serum 90 · mouse_feces+mouse_serum 77 · all three 15 · human+mouse_feces 12. (Per-dataset row counts are below the seed counts because same-structure entries merge on InChIKey — by design.)
 
@@ -232,10 +234,12 @@ python verify_reproduction.py         # REPRODUCE_reference_fingerprints.json �
 
 데이터셋별·통합 워크북, InChIKey 맨앞 컬럼 배치, 카테고리별 헤더 색상 그룹(Basic Identifiers / Dataset Membership / External DB IDs / **Drug / Food** / Classification / Classification Sources / Classification Metadata / DB Support / Classification Conflicts / Enzyme Information). External DB ID 헤더(COCONUT, PubChem, KEGG, HMDB, ChEBI, DrugBank, FooDB, LIPID MAPS)는 각 DB 홈페이지로 가는 클릭 링크다. 별도의 **Classification Rules** 시트가 **v4 방식**을 명시한다 — 각 DB 판정을 병렬로 나열(우선순위 없음), 각 DB가 읽는 축(ChEBI=만들었나 / HMDB=검출됐나 / COCONUT=분리됐나 / MMMDB=조직실측), `conflict_flag`/`conflicting_sources` 산출 방식.
 
-- `human_serum_final.xlsx` — 316행
-- `mouse_serum_final.xlsx` — 715행
-- `mouse_feces_final.xlsx` — 899행
-- `combined_final.xlsx` — 고유 InChIKey 1,721개, 각 화합물의 출처 데이터셋을 `datasets` 컬럼에 기록.
+export 파일명에는 생성일 스탬프 `yymmdd`(`-` 없음)가 붙는다(예: `combined_260728.xlsx`). export는 매 실행마다 재생성되는 뷰이므로 동결본 'final'이 아니기 때문. 아래 행 수는 2026-07-28 스냅샷 기준.
+
+- `human_serum_yymmdd.xlsx` — 316행
+- `mouse_serum_yymmdd.xlsx` — 715행
+- `mouse_feces_yymmdd.xlsx` — 899행
+- `combined_yymmdd.xlsx` — 고유 InChIKey 1,721개, 각 화합물의 출처 데이터셋을 `datasets` 컬럼에 기록.
 
 통합본 데이터셋 소속: mouse_feces 단독 795 · mouse_serum 단독 533 · human 단독 199 · human+mouse_serum 90 · mouse_feces+mouse_serum 77 · 3종 전부 15 · human+mouse_feces 12. (데이터셋별 행수가 seed보다 적은 건 동일 구조가 InChIKey로 병합되기 때문 — 설계대로.)
 
