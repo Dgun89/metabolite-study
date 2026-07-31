@@ -158,9 +158,16 @@ def build_wide(tables: dict, inchikeys, with_datasets: bool = False) -> pd.DataF
     return out.reset_index(drop=True)
 
 
-def export_species(tables: dict, species: str) -> Path:
+def export_species(tables: dict, species: str) -> Path | None:
     spc = tables["compound_species"]
     iks = spc[spc["species"] == species]["inchikey"].unique()
+    if len(iks) == 0:
+        # 이 데이터셋이 정규화 테이블에 없다 — 보통 step4 캐시가 이 PC에 없는 경우다
+        # (원본 데이터는 git에 올리지 않으므로 clone에는 3종 캐시만 들어온다).
+        # 0행 워크북을 만들면 Summary 시트의 비율 계산이 의미를 잃으므로 건너뛴다.
+        print(f"[{species}] 정규화 테이블에 행 없음 — 건너뜀 "
+              f"(step4 캐시 미존재로 추정)")
+        return None
     df = build_wide(tables, iks)
     C.EXPORT_DIR.mkdir(parents=True, exist_ok=True)
     # 파일명에는 슬러그를 쓴다: 라벨 'osaka(1)'의 괄호가 파일명에 새면
