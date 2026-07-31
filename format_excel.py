@@ -14,7 +14,7 @@ GROUPS = {
         "description": "Which source datasets this compound appears in (combined view only)"
     },
     "External DB IDs": {
-        "columns": ["COCONUT", "PubChem", "KEGG", "HMDB", "ChEBI", "DrugBank", "DrugCentral", "FooDB", "LIPID MAPS"],
+        "columns": ["COCONUT", "PubChem", "KEGG", "HMDB", "ChEBI", "CAS", "DrugBank", "DrugCentral", "FooDB", "LIPID MAPS"],
         "color": "C6EFCE",
         "description": "Cross-reference IDs from external databases (UniChem-resolved)"
     },
@@ -65,6 +65,7 @@ COL_SOURCE = {
     "KEGG"                 : "KEGG",
     "HMDB"                 : "HMDB",
     "ChEBI"                : "ChEBI",
+    "CAS"                  : "contributor dataset + HMDB",
     "DrugBank"             : "UniChem",
     "DrugCentral"          : "UniChem",
     "FooDB"                : "UniChem",
@@ -96,6 +97,7 @@ DB_HOMEPAGE = {
     "KEGG"      : "https://www.kegg.jp/",
     "HMDB"      : "https://hmdb.ca/",
     "ChEBI"     : "https://www.ebi.ac.uk/chebi/",
+    "CAS"       : "https://commonchemistry.cas.org/",
     "DrugBank"  : "https://go.drugbank.com/",
     "DrugCentral": "https://drugcentral.org/",
     "FooDB"     : "https://foodb.ca/",
@@ -112,6 +114,7 @@ COL_DESC = {
     "KEGG"                 : "KEGG Compound ID",
     "HMDB"                 : "Human Metabolome Database ID",
     "ChEBI"                : "Chemical Entities of Biological Interest ID",
+    "CAS"                  : "CAS Registry Number. Not resolved via UniChem — supplied by contributor datasets (osaka(1)) or the HMDB local record; see the Legend Source column",
     "DrugBank"             : "DrugBank ID (cross-linked via UniChem)",
     "DrugCentral"          : "DrugCentral ID (approved-drug DB, cross-linked via UniChem). One of the drug_food evidence sources (drug = DrugBank/DrugCentral present)",
     "FooDB"                : "FooDB ID (cross-linked via UniChem)",

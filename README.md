@@ -37,14 +37,17 @@ Primary key throughout is `inchikey` (full 27-char); `inchikey14` (14-char skele
 
 External-id coverage by source: COCONUT 2,446 · PubChem 1,636 · EPA CompTox 681 · ChEBI 655 · ChEMBL 464 · HMDB 390 · KEGG 261 · FooDB 254 · RCSB PDB 242 · PDBe 240 · Wikipedia 213 · BindingDB 208 · DrugBank 193 · LIPID MAPS 87 · DrugCentral 72 · Guide to Pharmacology 44 · SwissLipids 6. (Most are UniChem cross-links already returned during identifier collection — stored, not re-fetched.)
 
-### Pipeline (`pipeline/`, switch with `SPECIES=human|mouse_serum|mouse_feces`)
+### Pipeline (`pipeline/`, switch with `SPECIES=human_serum|mouse_serum|mouse_feces|osaka(1)`)
 
 Code is species-agnostic; the dataset is selected by `config.get_paths(species)`. Paths are portable — `config.BASE` defaults to the repo root and is overridable via `METABO_BASE` / `METABO_WORK`.
+
+Dataset labels may contain characters that are unsafe in paths (e.g. the parentheses in `osaka(1)`, numbered so further deliveries can be added as `osaka(2)`…). `config.dataset_slug()` maps a label to a filesystem-safe slug, and **all** directory names, step-file names and export filenames are built from the slug, never the raw label. For the original three datasets slug == label, so no existing path changes.
 
 0. **`00_make_seeds.py`** — extract CNP/PEP ids + compound name from each original xlsx → `{species}_seed.csv` (dup ids dropped).
 0b. **`00b_resolve_pep.py`** — resolve peptide (`PEP…`) entries to structures: PubChem name search → RDKit `MolFromSequence` fallback. Recovery 100% (human 1/1, mouse_serum 10/10, mouse_feces 49/49).
 1. **`01_coconut_join.py`** — join seed CNP ids against the local COCONUT CSV (738,827 rows, streamed): exact full-id match → base-id match with deterministic lowest-version selection (stereo ambiguity flagged) → PEP merge → PubChem name-search fallback for unmatched. **100% InChIKey coverage** on all three datasets. → `interim/{species}/{species}_step2_coconut.parquet`.
-2. **`collect_identifiers.py`** — parallel identifier collection keyed on unique InChIKeys (1,721): UniChem `POST /unichem/api/v1/compounds` (all cross-links), ChEBI (roles), PubChem PUG REST (CID). Provenance-logged.
+1b. **`01b_inchikey_join.py`** — sister script to step 1 for datasets that enter with InChIKey already resolved (i.e. no CNP id to walk through). Joins COCONUT directly on `standard_inchi_key`; compounds absent from COCONUT keep the structure from their own source record (`match_type=hmdb_only`). Deterministic lowest-version pick on multi-version hits; no stereo-ambiguity or id-version handling is needed on this path. Same output schema as step 1, plus fallback identifier columns consumed by step 4. → `interim/{slug}/{slug}_step2_coconut.parquet`.
+2. **`collect_identifiers.py`** — parallel identifier collection keyed on unique InChIKeys: UniChem `POST /unichem/api/v1/compounds` (all cross-links), ChEBI (roles), PubChem PUG REST (CID). Provenance-logged.
 3. **`build_hmdb_index.py`** — stream the 6.1 GB HMDB XML with `iterparse`, extracting ontology source / protein / biospecimen for target InChIKeys.
 4. **`04_classify_run.py`** + **`classify.py`** — endogenous/exogenous with per-source verdicts. **`classify_row_v4()`** (current) drops the priority rules entirely: it reuses each DB's independent verdict but **lists them in parallel** (`ChEBI:…; HMDB:…; COCONUT:…; MMMDB:…`) rather than forcing one label — different DBs measure different axes, so collapsing them mangles the axis. `conflict_flag` / `conflicting_sources` still flag endo↔exo disagreement. Earlier `classify_row()` / `_v2()` / `_v3()` are **kept frozen** for back-compat and before/after audit (we stack rule versions, never overwrite them).
 5. **`collect_enzymes.py`** — KEGG `link/enzyme` EC + Reactome catalyst mapping. **`collect_brenda.py`** — BRENDA SOAP (zeep), name → EC; auth `sha256(password)`, ≤ 1 req/sec.
@@ -70,14 +73,19 @@ python verify_reproduction.py         # compare against REPRODUCE_reference_fing
 
 Per-dataset and combined workbooks, InChIKey-first column layout, headers color-grouped by category (Basic Identifiers / Dataset Membership / External DB IDs / **Drug / Food** / Classification / Classification Sources / Classification Metadata / DB Support / Classification Conflicts / Enzyme Information). The External DB ID headers (COCONUT, PubChem, KEGG, HMDB, ChEBI, DrugBank, FooDB, LIPID MAPS) are clickable links to each database's homepage. A dedicated **Classification Rules** sheet documents the **v4 method** — each DB's verdict is listed in parallel (no priority ordering), what axis each DB reads (ChEBI=produced / HMDB=detected / COCONUT=isolated-from / MMMDB=tissue-measured), and how `conflict_flag`/`conflicting_sources` are derived.
 
-Export filenames carry a `yymmdd` creation-date stamp (no `-`), e.g. `combined_260728.xlsx`, because the export is a view that is regenerated on every run — it is **not** a frozen "final". Row counts below are for the 2026-07-28 snapshot.
+Export filenames carry a `yymmdd` creation-date stamp (no `-`), e.g. `combined_260731.xlsx`, because the export is a view that is regenerated on every run — it is **not** a frozen "final". The stamp defaults to today but can be pinned with `METABO_STAMP=yymmdd` so a run on another machine on a later day reproduces the same filename.
+
+Row counts below are for the 2026-07-31 snapshot.
 
 - `human_serum_yymmdd.xlsx` — 316 rows
 - `mouse_serum_yymmdd.xlsx` — 715 rows
 - `mouse_feces_yymmdd.xlsx` — 899 rows
-- `combined_yymmdd.xlsx` — 1,721 unique InChIKeys, with a `datasets` column recording which dataset(s) each compound comes from.
+- `osaka1_yymmdd.xlsx` — 727 rows
+- `combined_yymmdd.xlsx` — 2,329 unique InChIKeys, with a `datasets` column recording which dataset(s) each compound comes from. Filter on that column (literal string match — the label contains regex metacharacters) to slice any single dataset back out.
 
-Combined dataset membership: mouse_feces only 795 · mouse_serum only 533 · human only 199 · human+mouse_serum 90 · mouse_feces+mouse_serum 77 · all three 15 · human+mouse_feces 12. (Per-dataset row counts are below the seed counts because same-structure entries merge on InChIKey — by design.)
+Combined dataset membership: mouse_feces only 760 · osaka(1) only 608 · mouse_serum only 508 · human_serum only 188 · human_serum+mouse_serum 83 · mouse_feces+mouse_serum 50 · mouse_feces+osaka(1) 35 · mouse_feces+mouse_serum+osaka(1) 27. (Per-dataset row counts are below the seed counts because same-structure entries merge on InChIKey — by design.)
+
+`CAS` sits in the External DB ID group. Unlike the other columns there it is **not** UniChem-resolved — it comes from a contributor dataset's own column or from the HMDB record, recorded under `source='CAS'` in `compound_external_ids` with `source_version` naming which of the two.
 
 ### Legacy reliability comparison
 
@@ -144,6 +152,15 @@ metabolite-study/
 
 ### Progress log
 
+- **2026-07-31** — fourth dataset admitted; label→path safety; `CAS` column:
+  - **`osaka(1)`** registered in `config.SPECIES` as a collaborator-provided panel. Numbered label so further deliveries can be added as `osaka(2)`… The raw workbook stays under `data/osaka/0731/` (not in git, per the raw-data principle); the seed CSV carries the resolved InChIKey.
+  - **`config.dataset_slug()`** added — dataset labels may hold path-unsafe characters, so directory names, step-file names and export filenames are now built from the slug throughout (`config.py`, `normalize.py`, `04_classify_run.py`, `collect_brenda.py`, `export_view.py`). Slug == label for the original three, so no existing path moved.
+  - **`pipeline/01b_inchikey_join.py`** — structure join for datasets entering with InChIKey already resolved. COCONUT joined directly on `standard_inchi_key`; non-COCONUT compounds keep their own source record's structure. Step 1's CNP path is untouched.
+  - **`CAS`** added to the export (External DB ID group). Not UniChem-resolved — contributor column or HMDB record, with `source_version` recording which. Registered in all four `format_excel.py` metadata dicts so `check_column_registration()` passes.
+  - **`METABO_STAMP`** env var pins the export date stamp, so another machine reproduces the same filename on a later day.
+  - Data-exclusion rules in `.gitignore` switched from per-extension to directory-level (`data/**`, `.py` excepted) — the extension list had gaps that let derived JSON through.
+  - combined view: 1,721 → **2,329** unique InChIKeys. All 1,721 pre-existing rows preserved; 0 header-colour changes on the 30 existing columns; enzyme table unchanged at 6,592 rows (enzyme collection out of scope for this dataset).
+
 - **2026-07-28** — portability + drug/food column cleanup:
   - **UTF-8 pinned** on all `read_text`/`write_text` calls across the pipeline — `Path.read_text()` defaults to the OS locale (cp1252 on Windows) and raised `UnicodeDecodeError` on UTF-8 JSON caches. Now runs on Windows.
   - **export filenames** changed from `{name}_final.xlsx` to a `yymmdd` creation stamp (`combined_260728.xlsx`) — the export is regenerated every run, not a frozen "final". `compare_legacy.py` now globs the latest date-stamped snapshot.
@@ -208,14 +225,17 @@ metabolite-study/
 
 소스별 외부 id 커버리지: COCONUT 2,446 · PubChem 1,636 · EPA CompTox 681 · ChEBI 655 · ChEMBL 464 · HMDB 390 · KEGG 261 · FooDB 254 · RCSB PDB 242 · PDBe 240 · Wikipedia 213 · BindingDB 208 · DrugBank 193 · LIPID MAPS 87 · DrugCentral 72 · Guide to Pharmacology 44 · SwissLipids 6. (대부분 identifier 수집 시 UniChem이 이미 반환한 교차링크 — 재수집 없이 저장.)
 
-### 파이프라인 (`pipeline/`, `SPECIES=human|mouse_serum|mouse_feces` 전환)
+### 파이프라인 (`pipeline/`, `SPECIES=human_serum|mouse_serum|mouse_feces|osaka(1)` 전환)
 
 코드는 데이터셋 무관, `config.get_paths(species)`로 선택. 경로는 이식 가능 — `config.BASE`는 레포 루트가 기본이고 `METABO_BASE` / `METABO_WORK`로 오버라이드.
+
+데이터셋 라벨에는 경로에 쓰기 위험한 문자가 들어갈 수 있다(예: `osaka(1)`의 괄호 — 추가 제공분을 `osaka(2)`…로 붙일 수 있게 번호를 매긴 형태). `config.dataset_slug()`가 라벨을 파일시스템 안전한 슬러그로 변환하며, 디렉터리명·step 파일명·export 파일명은 **전부** 슬러그로 만든다(원본 라벨을 직접 쓰지 않는다). 기존 3종은 슬러그 == 라벨이라 경로 변화 없음.
 
 0. **`00_make_seeds.py`** — 원본 xlsx에서 CNP/PEP id + 화합물명 추출 → `{species}_seed.csv`(중복 id 제거).
 0b. **`00b_resolve_pep.py`** — 펩타이드(`PEP…`) 항목 구조 복원: PubChem 이름검색 → RDKit `MolFromSequence` fallback. 복원율 100%(human 1/1, mouse_serum 10/10, mouse_feces 49/49).
 1. **`01_coconut_join.py`** — seed CNP id를 로컬 COCONUT CSV(738,827행, 스트리밍)와 조인: full-id 정확매칭 → base-id 매칭+최저버전 결정론적 선택(입체 애매 시 플래그) → PEP 병합 → 미매칭은 PubChem 이름검색 fallback. **3종 모두 100% InChIKey 커버리지.** → `interim/{species}/{species}_step2_coconut.parquet`.
-2. **`collect_identifiers.py`** — 고유 InChIKey(1,721) 기준 병렬 수집: UniChem `POST /unichem/api/v1/compounds`(전체 교차링크), ChEBI(roles), PubChem PUG REST(CID). Provenance 기록.
+1b. **`01b_inchikey_join.py`** — InChIKey가 이미 해석된 상태로 들어오는 데이터셋용 자매 스크립트(CNP id를 거칠 필요가 없는 경우). COCONUT을 `standard_inchi_key`로 직접 조인하고, COCONUT 미수록 화합물은 자기 소스 레코드의 구조를 쓴다(`match_type=hmdb_only`). 다중 버전은 1단계와 같은 최저버전 결정론적 선택; 이 경로에서는 id 버전·입체 애매 처리가 애초에 발생하지 않는다. 출력 스키마는 1단계 step2와 동일 + 4단계가 폴백으로 쓰는 식별자 컬럼. → `interim/{slug}/{slug}_step2_coconut.parquet`.
+2. **`collect_identifiers.py`** — 고유 InChIKey 기준 병렬 수집: UniChem `POST /unichem/api/v1/compounds`(전체 교차링크), ChEBI(roles), PubChem PUG REST(CID). Provenance 기록.
 3. **`build_hmdb_index.py`** — 6.1GB HMDB XML을 `iterparse` 스트리밍, 대상 InChIKey의 ontology source/protein/biospecimen 추출.
 4. **`04_classify_run.py`** + **`classify.py`** — 소스별 판정 기반 내인성/외인성. **`classify_row_v4()`**(현재)는 우선순위 규칙을 완전히 폐기하고 각 DB의 독립 판정을 **병렬로 나열**한다(`ChEBI:…; HMDB:…; COCONUT:…; MMMDB:…`) — DB마다 축이 달라 하나로 합치면 축을 뭉갠다. `conflict_flag` / `conflicting_sources`는 여전히 endo↔exo 불일치를 표시한다. 이전 `classify_row()` / `_v2()` / `_v3()`는 하위호환·전후 비교를 위해 **박제로 보존**(규칙 버전을 덮어쓰지 않고 쌓는다).
 5. **`collect_enzymes.py`** — KEGG `link/enzyme` EC + Reactome catalyst. **`collect_brenda.py`** — BRENDA SOAP(zeep), 이름 → EC; 인증 `sha256(password)`, ≤ 1 req/sec.
@@ -241,14 +261,19 @@ python verify_reproduction.py         # REPRODUCE_reference_fingerprints.json �
 
 데이터셋별·통합 워크북, InChIKey 맨앞 컬럼 배치, 카테고리별 헤더 색상 그룹(Basic Identifiers / Dataset Membership / External DB IDs / **Drug / Food** / Classification / Classification Sources / Classification Metadata / DB Support / Classification Conflicts / Enzyme Information). External DB ID 헤더(COCONUT, PubChem, KEGG, HMDB, ChEBI, DrugBank, FooDB, LIPID MAPS)는 각 DB 홈페이지로 가는 클릭 링크다. 별도의 **Classification Rules** 시트가 **v4 방식**을 명시한다 — 각 DB 판정을 병렬로 나열(우선순위 없음), 각 DB가 읽는 축(ChEBI=만들었나 / HMDB=검출됐나 / COCONUT=분리됐나 / MMMDB=조직실측), `conflict_flag`/`conflicting_sources` 산출 방식.
 
-export 파일명에는 생성일 스탬프 `yymmdd`(`-` 없음)가 붙는다(예: `combined_260728.xlsx`). export는 매 실행마다 재생성되는 뷰이므로 동결본 'final'이 아니기 때문. 아래 행 수는 2026-07-28 스냅샷 기준.
+export 파일명에는 생성일 스탬프 `yymmdd`(`-` 없음)가 붙는다(예: `combined_260731.xlsx`). export는 매 실행마다 재생성되는 뷰이므로 동결본 'final'이 아니기 때문. 스탬프 기본값은 '오늘'이지만 `METABO_STAMP=yymmdd`로 고정할 수 있다 — 다른 PC에서 하루 뒤에 돌려도 같은 파일명을 재현해야 할 때 쓴다.
+
+아래 행 수는 2026-07-31 스냅샷 기준.
 
 - `human_serum_yymmdd.xlsx` — 316행
 - `mouse_serum_yymmdd.xlsx` — 715행
 - `mouse_feces_yymmdd.xlsx` — 899행
-- `combined_yymmdd.xlsx` — 고유 InChIKey 1,721개, 각 화합물의 출처 데이터셋을 `datasets` 컬럼에 기록.
+- `osaka1_yymmdd.xlsx` — 727행
+- `combined_yymmdd.xlsx` — 고유 InChIKey 2,329개, 각 화합물의 출처 데이터셋을 `datasets` 컬럼에 기록. 이 컬럼으로 필터하면 특정 데이터셋만 다시 떼어낼 수 있다(라벨에 정규식 특수문자가 있으므로 리터럴 문자열 비교로 필터할 것).
 
-통합본 데이터셋 소속: mouse_feces 단독 795 · mouse_serum 단독 533 · human 단독 199 · human+mouse_serum 90 · mouse_feces+mouse_serum 77 · 3종 전부 15 · human+mouse_feces 12. (데이터셋별 행수가 seed보다 적은 건 동일 구조가 InChIKey로 병합되기 때문 — 설계대로.)
+통합본 데이터셋 소속: mouse_feces 단독 760 · osaka(1) 단독 608 · mouse_serum 단독 508 · human_serum 단독 188 · human_serum+mouse_serum 83 · mouse_feces+mouse_serum 50 · mouse_feces+osaka(1) 35 · mouse_feces+mouse_serum+osaka(1) 27. (데이터셋별 행수가 seed보다 적은 건 동일 구조가 InChIKey로 병합되기 때문 — 설계대로.)
+
+`CAS`는 External DB ID 그룹에 있지만 그 그룹의 다른 컬럼과 달리 **UniChem으로 해석되지 않는다** — 제공 데이터셋 자체 컬럼이나 HMDB 레코드에서 온다. `compound_external_ids`에 `source='CAS'`로 적재되고 `source_version`에 둘 중 어느 쪽인지 기록된다.
 
 ### legacy 신뢰성 대조
 
@@ -314,6 +339,15 @@ metabolite-study/
 ```
 
 ### 진행 로그
+
+- **2026-07-31** — 네 번째 데이터셋 편입, 라벨→경로 안전화, `CAS` 컬럼:
+  - **`osaka(1)`**을 외부 제공 패널로 `config.SPECIES`에 등록. 추가 제공분을 `osaka(2)`…로 붙일 수 있게 번호를 매긴 라벨. 원본 워크북은 `data/osaka/0731/`에 두되 git에는 올리지 않는다(원본 데이터 원칙); 시드 CSV가 해석된 InChIKey를 들고 있다.
+  - **`config.dataset_slug()`** 추가 — 데이터셋 라벨에 경로에 위험한 문자가 들어갈 수 있어, 디렉터리명·step 파일명·export 파일명을 전부 슬러그로 만들도록 변경(`config.py`, `normalize.py`, `04_classify_run.py`, `collect_brenda.py`, `export_view.py`). 기존 3종은 슬러그 == 라벨이라 경로 이동 없음.
+  - **`pipeline/01b_inchikey_join.py`** — InChIKey가 이미 해석된 데이터셋용 구조 조인. COCONUT을 `standard_inchi_key`로 직접 조인하고, COCONUT 미수록 화합물은 자기 소스 레코드의 구조를 쓴다. 1단계의 CNP 경로는 손대지 않았다.
+  - **`CAS`** 컬럼을 export에 추가(External DB ID 그룹). UniChem 해석 대상이 아니라 제공 데이터셋 컬럼이나 HMDB 레코드에서 오며, `source_version`에 어느 쪽인지 기록. `format_excel.py`의 메타데이터 4곳에 모두 등록해 `check_column_registration()` 통과.
+  - **`METABO_STAMP`** 환경변수로 export 날짜 스탬프 고정 — 다른 PC에서 하루 뒤에 돌려도 같은 파일명 재현.
+  - `.gitignore`의 데이터 배제 규칙을 확장자 단위 → 디렉터리 단위(`data/**`, `.py`만 예외)로 변경 — 확장자 목록에 구멍이 있어 파생 JSON이 새고 있었다.
+  - 통합 뷰: 고유 InChIKey 1,721 → **2,329**. 기존 1,721행 전부 보존, 기존 30개 컬럼 헤더색 변경 0건, 효소 테이블 6,592행 그대로(이 데이터셋은 효소 수집 범위 외).
 
 - **2026-07-28** — 이식성 + drug/food 컬럼 정리:
   - 파이프라인 전체의 `read_text`/`write_text`에 **UTF-8 고정** — `Path.read_text()`가 OS 로케일(Windows는 cp1252) 기본이라 UTF-8 JSON 캐시에서 `UnicodeDecodeError` 발생했음. 이제 Windows에서도 실행됨.

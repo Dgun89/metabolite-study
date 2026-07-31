@@ -68,7 +68,7 @@ if __name__ == "__main__":
     import pandas as pd
     frames = []
     for sp in C.SPECIES:
-        p = C.get_paths(sp)["interim"] / f"{sp}_step4_classified.parquet"
+        p = C.get_paths(sp)["interim"] / f"{C.dataset_slug(sp)}_step4_classified.parquet"
         if p.exists():
             frames.append(pd.read_parquet(p, columns=["compound_name"]))
     names = pd.concat(frames)["compound_name"].dropna().astype(str)

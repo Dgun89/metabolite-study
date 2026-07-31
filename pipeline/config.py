@@ -36,13 +36,35 @@ EXPORT_DIR = BASE / "data" / "export"
 #   mouse_serum : 쥐 혈청 (기존 "mouse")
 #   mouse_feces : 쥐 분변 (기존 "legacy" — step29로 정리된 902 화합물 세트)
 # 주의: 시료 폴더(data/human/)는 raw 보존 원칙에 따라 이름 유지. 종 키만 human_serum.
-SPECIES = ("human_serum", "mouse_serum", "mouse_feces")
+#   osaka(1)    : 오사카대 제공 pooled 표적 패널 (2026-07-31 수령, 771행).
+#                 다른 데이터셋과 달리 진입 키가 CNP id가 아니라 HMDB accession이다.
+#                 라벨에 (n)을 붙인 이유: 같은 제공처에서 추가 파일을 받을 수 있어
+#                 수령 차수를 데이터셋 축에 남긴다 — 다음 파일은 "osaka(2)".
+#                 주의: 괄호는 정규식 메타문자다. datasets 컬럼을 필터할 때는
+#                 리터럴 문자열 비교(str.contains(..., regex=False))를 쓸 것.
+SPECIES = ("human_serum", "mouse_serum", "mouse_feces", "osaka(1)")
+
+# 파일시스템·식별자로 안전한 데이터셋 슬러그(괄호 제거). 경로/파일명에 쓴다.
+DATASET_SLUG = {
+    "human_serum": "human_serum",
+    "mouse_serum": "mouse_serum",
+    "mouse_feces": "mouse_feces",
+    "osaka(1)":    "osaka1",
+}
+
+
+def dataset_slug(species: str) -> str:
+    """데이터셋 라벨 → 경로/파일명 안전 슬러그. 미등록 라벨은 비영숫자를 _로 치환."""
+    import re as _re
+    return DATASET_SLUG.get(species) or _re.sub(r"[^0-9A-Za-z]+", "_", species).strip("_")
 
 # 각 데이터셋의 시드(원본에서 CNP/PEP id + 이름만 추출한 표준 시드 CSV).
 RAW_SEEDS = {
     "human_serum": BASE / "data" / "human"       / "raw" / "human_seed.csv",
     "mouse_serum": BASE / "data" / "mouse_serum" / "raw" / "mouse_serum_seed.csv",
     "mouse_feces": BASE / "data" / "mouse_feces" / "raw" / "mouse_feces_seed.csv",
+    # osaka(1)은 수령 차수별 폴더(data/osaka/{수령일}/)에 원본과 시드를 함께 둔다.
+    "osaka(1)":    BASE / "data" / "osaka" / "0731" / "osaka1_seed.csv",
 }
 
 # 원본 annotation 파일(참고·시드 추출용, raw 원칙에 따라 수정 금지).
@@ -50,6 +72,7 @@ RAW_SOURCES = {
     "human_serum": BASE / "data" / "human"       / "raw" / "annotation_output_hito.xlsx",
     "mouse_serum": BASE / "data" / "mouse_serum" / "raw" / "annotation_output_mouse.xlsx",
     "mouse_feces": BASE / "data" / "mouse_feces" / "raw" / "metabolites_completed.xlsx",
+    "osaka(1)":    BASE / "data" / "osaka" / "0731" / "osaka_pooled_0731.xlsx",
 }
 
 # MMMDB(Mouse Multiple tissue Metabolome DataBase) 참조 — 실제 쥐 조직 검출 근거.
@@ -61,12 +84,16 @@ RAW_FILES = RAW_SOURCES
 
 def get_paths(species: str) -> dict:
     assert species in SPECIES, f"unknown species: {species!r} (expected one of {SPECIES})"
-    interim = WORK / "interim" / species
-    final = WORK / "final" / species
+    # 디렉터리명에는 슬러그를 쓴다: 라벨에 괄호 등 셸 메타문자가 있어도
+    # 경로가 안전하도록. 기존 3종은 슬러그==라벨이라 경로가 바뀌지 않는다.
+    slug = dataset_slug(species)
+    interim = WORK / "interim" / slug
+    final = WORK / "final" / slug
     interim.mkdir(parents=True, exist_ok=True)
     final.mkdir(parents=True, exist_ok=True)
     return {
         "species": species,
+        "slug": slug,
         "raw": RAW_SOURCES[species],
         "seed": RAW_SEEDS[species],
         "interim": interim,
@@ -122,7 +149,7 @@ def all_inchikeys(species_list=None):
     species_list = species_list or list(SPECIES)
     frames = []
     for sp in species_list:
-        p = get_paths(sp)["interim"] / f"{sp}_step2_coconut.parquet"
+        p = get_paths(sp)["interim"] / f"{dataset_slug(sp)}_step2_coconut.parquet"
         if p.exists():
             frames.append(pd.read_parquet(p, columns=["inchikey"]))
     if not frames:

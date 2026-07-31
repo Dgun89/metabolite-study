@@ -128,7 +128,8 @@ def normalize() -> dict:
     # 종별 step4 로드
     step4 = {}
     for sp in C.SPECIES:
-        p = C.get_paths(sp)["interim"] / f"{sp}_step4_classified.parquet"
+        # 파일명에는 슬러그를 쓴다(라벨의 괄호 등 메타문자가 경로에 새지 않도록).
+        p = C.get_paths(sp)["interim"] / f"{C.dataset_slug(sp)}_step4_classified.parquet"
         if p.exists():
             step4[sp] = pd.read_parquet(p)
     if not step4:
@@ -177,6 +178,20 @@ def normalize() -> dict:
             if v is not None and str(v).strip() and str(v).lower() not in ("nan", "none"):
                 ext.append({"inchikey": ik, "source": src, "external_id": str(v),
                             "source_version": ver, "retrieved_at": now})
+    # CAS 등록번호는 UniChem 교차수집 대상이 아니다 — 제공 데이터셋이 직접 준 값이거나
+    # HMDB 레코드에서 읽은 값이다. 어느 쪽인지 행마다 다르므로 EXT_SPEC의 일괄 버전을
+    # 쓰지 못하고, step4의 cas_origin에 따라 source_version을 개별로 붙인다.
+    for _, r in all_rows.iterrows():
+        v = r.get("cas")
+        if v is None or not str(v).strip() or str(v).lower() in ("nan", "none"):
+            continue
+        origin = r.get("cas_origin")
+        origin = str(origin) if origin is not None and str(origin).strip() \
+            and str(origin).lower() not in ("nan", "none") else "unknown"
+        ver = hmdb_ver if origin == "HMDB" else f"dataset:{r.get('species', '?')}"
+        ext.append({"inchikey": r["inchikey"], "source": "CAS", "external_id": str(v),
+                    "source_version": ver, "retrieved_at": now})
+
     # UniChem이 이미 반환한 추가 교차링크(DrugBank/FooDB/LIPID MAPS/… — 재수집 없이 저장)
     uc_ver = C.SOURCE_VERSIONS["UniChem"]
     for ik in comp["inchikey"]:

@@ -17,13 +17,20 @@
     python pipeline/export_view.py human         # 한 종만
     python pipeline/export_view.py combined       # 통합 뷰만
 """
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
 
 # export 파일명에 붙는 생성일 스탬프 (yymmdd, '-' 없음).
 # export는 계속 재생성되는 뷰이므로 'final'이 아니라 '언제 만든 스냅샷'임을 파일명에 명시.
-STAMP = datetime.now().strftime("%y%m%d")
+#
+# 재현성: 기본값은 '오늘'이지만, 환경변수 METABO_STAMP로 고정할 수 있다.
+# 다른 PC(예: Windows)에서 하루 뒤에 돌려도 같은 파일명을 재현해야 하는 경우가 있어서다.
+#   Linux/macOS:  METABO_STAMP=260731 python pipeline/export_view.py combined
+#   Windows(cmd): set METABO_STAMP=260731 && python pipeline\export_view.py combined
+#   Windows(PS):  $env:METABO_STAMP="260731"; python pipeline\export_view.py combined
+STAMP = os.environ.get("METABO_STAMP") or datetime.now().strftime("%y%m%d")
 
 import pandas as pd
 
@@ -113,6 +120,9 @@ def build_wide(tables: dict, inchikeys, with_datasets: bool = False) -> pd.DataF
     out["KEGG"]          = m(ext_val("KEGG"))
     out["HMDB"]          = m(ext_val("HMDB"))
     out["ChEBI"]         = m(ext_val("ChEBI"))
+    # CAS는 UniChem 교차조회 대상이 아님 — 기여 데이터셋(osaka(1) 등)이나 HMDB
+    # 로컬 레코드에서 온 값이 compound_external_ids에 source='CAS'로 적재된다.
+    out["CAS"]           = m(ext_val("CAS"))
     out["DrugBank"]      = m(ext_val("DrugBank"))
     out["DrugCentral"]   = m(ext_val("DrugCentral"))  # drug_food의 근거 DB(감사용) — DrugBank와 함께 drug 판정 소스
     out["FooDB"]         = m(ext_val("FooDB"))
@@ -153,7 +163,9 @@ def export_species(tables: dict, species: str) -> Path:
     iks = spc[spc["species"] == species]["inchikey"].unique()
     df = build_wide(tables, iks)
     C.EXPORT_DIR.mkdir(parents=True, exist_ok=True)
-    dest = C.EXPORT_DIR / f"{species}_{STAMP}.xlsx"
+    # 파일명에는 슬러그를 쓴다: 라벨 'osaka(1)'의 괄호가 파일명에 새면
+    # 셸 글롭·윈도우 경로 처리에서 문제가 된다. 기존 3종은 슬러그=라벨이라 변화 없음.
+    dest = C.EXPORT_DIR / f"{C.dataset_slug(species)}_{STAMP}.xlsx"
     df.to_excel(dest, index=False)
     from format_excel import apply_format
     apply_format(str(dest))
