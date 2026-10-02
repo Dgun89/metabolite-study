@@ -109,6 +109,9 @@ def normalize() -> dict:
     uni_entries = uni_cache.get("entries", {}) if isinstance(uni_cache, dict) else {}
     uni_ver = ((uni_cache.get("_meta") or {}).get("source_version")
                if isinstance(uni_cache, dict) else None) or C.SOURCE_VERSIONS["UniProt"]
+    # 경로 2: EC → 사람/쥐 Swiss-Prot 색인. 캐시가 없으면 빈 dict → 경로 2 행 미생성.
+    ec_index = uni_cache.get("ec_index", {}) if isinstance(uni_cache, dict) else {}
+    ec_nonmammalian = set(uni_cache.get("ec_nonmammalian", []) or []) if isinstance(uni_cache, dict) else set()
     src_hier = _load_source_hierarchy()   # HMDB 기원 라벨 → 6버킷 roll-up 주석
 
     coconut_ver = C.coconut_version()
@@ -345,6 +348,28 @@ def normalize() -> dict:
                 enz_rows.append({"inchikey": ik, "enzyme_source": "HMDB", "ec_number": None,
                                  "gene_name": gene, "source_version": hmdb_ver,
                                  "retrieved_at": h_at})
+    # ---- 경로 2: EC → 사람/쥐 Swiss-Prot ----
+    # KEGG/BRENDA가 준 EC를 종이 있는 단백질로 펼친다. EC는 반응 분류라 종이 없고,
+    # 여기서 비로소 효소 계층에 종 축이 생긴다. enzyme_source='UniProt-EC'로 구분해
+    # 적재하므로 경로 1(HMDB 유래)과 증거 출처가 섞이지 않는다.
+    if ec_index:
+        kegg_ec_by_ik = {ik: set(enz_cache.get(ik, {}).get("kegg_ec") or [])
+                         for ik in comp["inchikey"]}
+        brenda_ec_by_ik = {}
+        for name, ik in name_to_ik.items():
+            ecs = set(brenda.get(name, {}).get("ec_numbers") or [])
+            if ecs:
+                brenda_ec_by_ik.setdefault(ik, set()).update(ecs)
+        for ik in comp["inchikey"]:
+            ecs = kegg_ec_by_ik.get(ik, set()) | brenda_ec_by_ik.get(ik, set())
+            for ec in sorted(ecs):
+                for d in ec_index.get(ec, []):
+                    enz_rows.append({"inchikey": ik, "enzyme_source": "UniProt-EC",
+                                     "ec_number": ec, "gene_name": d.get("gene_name"),
+                                     "uniprot_acc": d["acc"], "organism": d["organism"],
+                                     "organism_id": d["organism_id"], "uniprot_reviewed": True,
+                                     "source_version": uni_ver, "retrieved_at": now})
+
     # BRENDA: 이름 기반
     for name, ik in name_to_ik.items():
         b = brenda.get(name, {})

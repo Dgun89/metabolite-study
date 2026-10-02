@@ -84,10 +84,13 @@ Numbered scripts are meant to run in order; each writes to `.work/interim/{slug}
 4. `04_classify_run.py` + `classify.py` — endogenous/exogenous classification.
 5. `collect_enzymes.py` / `collect_brenda.py` — KEGG/Reactome EC mapping; BRENDA SOAP (rate-limited to
    ≤1 req/sec, auth via `sha256(password)`, credentials in `.env` as `BRENDA_EMAIL`/`BRENDA_PASSWORD`).
-5b. `collect_uniprot.py` — resolves the UniProt accessions already parsed out of HMDB `protein_associations`
-   by step 3 (species / Swiss-Prot review status / EC) → `uniprot_cache.json`. The cache is **optional** for
-   `normalize.py`: without it `uniprot_acc` is still written (it comes from the HMDB index), only the
-   organism fields stay empty — keep it that way so normalize → export remains network-free.
+5b. `collect_uniprot.py` — two routes into the protein layer → `uniprot_cache.json`. Route 1 resolves the
+   UniProt accessions already parsed out of HMDB `protein_associations` by step 3 (species / review status /
+   EC). Route 2 maps the data's EC numbers onto reviewed human+mouse entries — one `/uniprotkb/stream` call
+   builds the whole index locally; do NOT loop per-EC (that would be 2,033 requests). The cache is
+   **optional** for `normalize.py`: without it route-1 `uniprot_acc` is still written (it comes from the
+   HMDB index) but organism fields stay empty and route-2 rows are skipped — keep it that way so
+   normalize → export remains network-free.
 6. `normalize.py` — assembles the 6 normalized tables; this is where classification, DB-support level, and
    MMMDB tissue-origin merges actually get (re)computed for the final output — not in step 4.
 7. `export_view.py` — normalized tables → 4-sheet xlsx via `format_excel.py` (color-grouped headers,

@@ -38,6 +38,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # pipeline + fo
 from pipeline import config as C
 
 SEMI = "; "
+# UniProt accession 셀에 보여줄 최대 개수 (초과분은 개수만 명시하고 자른다)
+UNIPROT_CELL_CAP = 25
+
+
+def _cap_cell(vals):
+    if len(vals) <= UNIPROT_CELL_CAP:
+        return SEMI.join(vals)
+    return SEMI.join(vals[:UNIPROT_CELL_CAP]) + f" … ({UNIPROT_CELL_CAP} of {len(vals)} shown)"
 
 
 def _load_norm() -> dict:
@@ -102,6 +110,33 @@ def build_wide(tables: dict, inchikeys, with_datasets: bool = False) -> pd.DataF
         sub = enz[enz["inchikey"].isin(iks)]
         return _agg(sub, "inchikey", col, where=sub["enzyme_source"] == src)
 
+    def uniprot_by_species(taxon):
+        """해당 종의 UniProt accession 모음 (경로 1 + 경로 2 합침).
+
+        NAD+ 처럼 EC를 129개 들고 있는 보조인자는 accession이 수백 개로 펼쳐져 셀이
+        읽을 수 없게 된다. 셀은 UNIPROT_CELL_CAP개까지만 보여주고 전체 개수를 명시한다
+        (잘렸다는 사실을 숨기지 않는다). 전체 목록은 compound_enzymes.parquet에 있다.
+        """
+        sub = enz[enz["inchikey"].isin(iks)]
+        if "organism_id" not in sub.columns:
+            return _agg(sub.iloc[0:0], "inchikey", "uniprot_acc")
+        mask = sub["uniprot_acc"].notna() & (sub["organism_id"] == taxon)
+        return (sub[mask][["inchikey", "uniprot_acc"]]
+                .groupby("inchikey")["uniprot_acc"]
+                .apply(lambda s: _cap_cell(sorted(set(s)))))
+
+    def ec_mammalian_flag():
+        """이 화합물의 EC 중 사람·쥐 효소가 실제로 존재하는 게 하나라도 있는가.
+
+        KEGG/BRENDA의 EC 컬럼은 식물·세균 효소를 구분 없이 나열한다(우리 EC 2,033개 중
+        사람·쥐 효소가 있는 건 521개뿐). 이 플래그로 구분된다. EC가 아예 없으면 공란.
+        """
+        sub = enz[enz["inchikey"].isin(iks)]
+        has_ec = set(sub[sub["enzyme_source"].isin(["KEGG", "BRENDA"])
+                         & sub["ec_number"].notna()]["inchikey"])
+        has_mam = set(sub[sub["enzyme_source"] == "UniProt-EC"]["inchikey"])
+        return pd.Series({ik: (ik in has_mam) for ik in has_ec}, dtype=object)
+
     def m(series):
         return base["inchikey"].map(series).fillna("")
 
@@ -144,13 +179,21 @@ def build_wide(tables: dict, inchikeys, with_datasets: bool = False) -> pd.DataF
     out["mmmdb_detected"]   = base["inchikey"].map(comp_i["mmmdb_detected"]).fillna(False).values
     out["mmmdb_tissues"]    = m(ori_val("MMMDB"))
     # --- Enzyme Information ---
-    # UniProt accession을 그룹 맨 앞에 둔다: EC(반응 분류)·gene symbol(종 모호)과 달리
-    # 단백질 × 생물종 단위로 고유해, 나머지 4개 소스를 묶는 기준 키 역할을 한다.
-    out["uniprot_enzymes"]   = m(enz_val("HMDB", "uniprot_acc"))
+    # UniProt accession을 그룹 맨 앞에, 종별로 나눠 둔다: EC(반응 분류)·gene symbol(종 모호)과
+    # 달리 accession은 단백질 × 생물종 단위로 고유해, 나머지 4개 소스를 묶는 기준 키이자
+    # 그중 유일하게 종을 들고 있는 키다. 두 컬럼 모두 경로 1(HMDB 유래)과 경로 2(EC 유래)를
+    # 합친 값이며, 증거 출처 구분은 compound_enzymes.enzyme_source에 남는다.
+    out["uniprot_human"]     = m(uniprot_by_species(9606))
+    out["uniprot_mouse"]     = m(uniprot_by_species(10090))
     out["kegg_enzymes"]      = m(enz_val("KEGG", "ec_number"))
     out["hmdb_enzymes"]      = m(enz_val("HMDB", "gene_name"))
     out["reactome_catalysts"] = m(enz_val("Reactome", "gene_name"))
     out["brenda_enzymes"]    = m(enz_val("BRENDA", "ec_number"))
+    # 3상태(TRUE / FALSE / EC 없음)라 순수 bool 컬럼이 될 수 없다. 결측이 섞인 컬럼을
+    # to_excel에 넘기면 bool이 1/0 숫자로 적히므로(conflict_flag 등 순수 bool 컬럼과
+    # 보기가 달라진다), 문자열 "TRUE"/"FALSE"/""로 명시해 표시를 통일한다.
+    out["ec_has_mammalian_enzyme"] = (base["inchikey"].map(ec_mammalian_flag())
+                                      .map({True: "TRUE", False: "FALSE"}).fillna(""))
     # 통합본: 각 화합물이 어느 데이터셋(human/mouse_serum/mouse_feces)에서 관측됐는지
     if with_datasets:
         ds = _agg(spc[spc["inchikey"].isin(iks)], "inchikey", "species")

@@ -49,9 +49,10 @@ GROUPS = {
         "description": "Whether sources disagree on origin, and which verdicts conflict"
     },
     "Enzyme Information": {
-        "columns": ["uniprot_enzymes", "kegg_enzymes", "hmdb_enzymes", "reactome_catalysts", "brenda_enzymes"],
+        "columns": ["uniprot_human", "uniprot_mouse", "kegg_enzymes", "hmdb_enzymes",
+                    "reactome_catalysts", "brenda_enzymes", "ec_has_mammalian_enzyme"],
         "color": "DAEEF3",
-        "description": "Enzyme data from multiple databases. UniProt accession is placed first: unlike EC (reaction class, species-agnostic) or gene symbol (species-ambiguous) it is unique per protein x organism, so it is the key that ties the other four sources together"
+        "description": "Enzyme data from multiple databases. UniProt accessions come first and are split by species: unlike EC (reaction class, species-agnostic) or gene symbol (species-ambiguous) an accession is unique per protein x organism, so it both ties the other four sources together and supplies the species axis the human-vs-mouse comparison needs"
     }
 }
 
@@ -83,7 +84,9 @@ COL_SOURCE = {
     "mmmdb_tissues"        : "MMMDB",
     "conflict_flag"        : "ChEBI + HMDB + COCONUT",
     "conflicting_sources"  : "ChEBI + HMDB + COCONUT",
-    "uniprot_enzymes"      : "HMDB + UniProt",
+    "uniprot_human"        : "UniProt (via HMDB + EC)",
+    "uniprot_mouse"        : "UniProt (via EC)",
+    "ec_has_mammalian_enzyme": "UniProt",
     "kegg_enzymes"         : "KEGG",
     "hmdb_enzymes"         : "HMDB",
     "reactome_catalysts"   : "Reactome",
@@ -133,7 +136,9 @@ COL_DESC = {
     "mmmdb_tissues"        : "Mouse tissues where compound was detected in MMMDB (semicolon-separated)",
     "conflict_flag"        : "True if sources disagree on endogenous vs exogenous origin",
     "conflicting_sources"  : "Per-source verdicts when they conflict (e.g. COCONUT=endogenous;ChEBI=exogenous)",
-    "uniprot_enzymes"      : "UniProt accession(s) of enzymes associated with this compound, from the HMDB protein_associations records (same records that supply hmdb_enzymes gene names). Unique per protein x organism — the join key across the enzyme sources. Species, Swiss-Prot/TrEMBL review status and EC are resolved from UniProt and kept in compound_enzymes (organism / uniprot_reviewed). Note: HMDB is human-centric, so this route is predominantly human; mouse enzymes need the EC-to-UniProt species query (not yet applied)",
+    "uniprot_human"        : "UniProt accession(s) of HUMAN enzymes linked to this compound. Two evidence routes are merged here: HMDB protein_associations (the same records that supply hmdb_enzymes gene names) and the compound's EC numbers resolved to human Swiss-Prot entries. Which route a given accession came from is recorded in compound_enzymes.enzyme_source (HMDB vs UniProt-EC). Long lists are truncated in this cell with the full count shown — the complete list is in compound_enzymes.parquet",
+    "uniprot_mouse"        : "UniProt accession(s) of MOUSE enzymes linked to this compound, from the compound's EC numbers resolved to mouse Swiss-Prot entries. This is the species axis the enzyme layer previously lacked: EC numbers are reaction classes with no species, and gene symbols are species-ambiguous. Accessions from organisms other than human/mouse (HMDB occasionally links e.g. snake-venom proteases) are not shown in either species column but are kept in compound_enzymes",
+    "ec_has_mammalian_enzyme": "TRUE if at least one of this compound's EC numbers (kegg_enzymes / brenda_enzymes) corresponds to a reviewed human or mouse enzyme; FALSE if none do; blank if the compound has no EC at all. Those two EC columns list plant and bacterial enzymes without marking them — only 521 of the 2,033 EC numbers in this file have a human or mouse enzyme, so FALSE means the EC entries are real but not mammalian",
     "kegg_enzymes"         : "EC numbers from KEGG (semicolon-separated)",
     "hmdb_enzymes"         : "Enzyme gene names from HMDB (semicolon-separated)",
     "reactome_catalysts"   : "Catalyst activity names from Reactome",
@@ -345,14 +350,22 @@ def apply_format(filepath: str):
             ("Enzyme Info", "Total (unique)", int((has_kegg | has_hmdb | has_reactome | has_brenda).sum()), pct((has_kegg | has_hmdb | has_reactome | has_brenda).sum())),
         ]
 
-    # UniProt(단백질 계층 키) — 화합물 커버리지와 고유 accession 수
-    if "uniprot_enzymes" in df.columns:
-        up = df["uniprot_enzymes"].fillna("").astype(str)
-        has_up = up.str.strip() != ""
-        n_acc = len({a.strip() for cell in up for a in cell.split(";") if a.strip()})
+    # UniProt(단백질 계층 키) — 종별 화합물 커버리지
+    if "uniprot_human" in df.columns:
+        h = df["uniprot_human"].fillna("").astype(str).str.strip() != ""
+        mo = df["uniprot_mouse"].fillna("").astype(str).str.strip() != ""
         rows += [
-            ("Enzyme Info (UniProt)", "Compounds with UniProt accession", int(has_up.sum()), pct(int(has_up.sum()))),
-            ("Enzyme Info (UniProt)", "Unique UniProt accessions", n_acc, ""),
+            ("Enzyme Info (UniProt)", "Compounds with human accession", int(h.sum()), pct(int(h.sum()))),
+            ("Enzyme Info (UniProt)", "Compounds with mouse accession", int(mo.sum()), pct(int(mo.sum()))),
+            ("Enzyme Info (UniProt)", "Compounds with both species", int((h & mo).sum()), pct(int((h & mo).sum()))),
+            ("Enzyme Info (UniProt)", "Compounds with any UniProt accession", int((h | mo).sum()), pct(int((h | mo).sum()))),
+        ]
+    if "ec_has_mammalian_enzyme" in df.columns:
+        # 이 컬럼은 호출 경로에 따라 문자열("TRUE")로도 bool(True)로도 들어온다 — 둘 다 받는다
+        f = df["ec_has_mammalian_enzyme"].astype(str).str.upper()
+        rows += [
+            ("Enzyme Info (EC species check)", "EC present, human/mouse enzyme exists", int((f == "TRUE").sum()), pct(int((f == "TRUE").sum()))),
+            ("Enzyme Info (EC species check)", "EC present, NO mammalian enzyme", int((f == "FALSE").sum()), pct(int((f == "FALSE").sum()))),
         ]
 
     for i, (category, item, count, coverage) in enumerate(rows, 5):
