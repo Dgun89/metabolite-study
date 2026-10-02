@@ -49,9 +49,9 @@ GROUPS = {
         "description": "Whether sources disagree on origin, and which verdicts conflict"
     },
     "Enzyme Information": {
-        "columns": ["kegg_enzymes", "hmdb_enzymes", "reactome_catalysts", "brenda_enzymes"],
+        "columns": ["uniprot_enzymes", "kegg_enzymes", "hmdb_enzymes", "reactome_catalysts", "brenda_enzymes"],
         "color": "DAEEF3",
-        "description": "Enzyme data from multiple databases"
+        "description": "Enzyme data from multiple databases. UniProt accession is placed first: unlike EC (reaction class, species-agnostic) or gene symbol (species-ambiguous) it is unique per protein x organism, so it is the key that ties the other four sources together"
     }
 }
 
@@ -83,6 +83,7 @@ COL_SOURCE = {
     "mmmdb_tissues"        : "MMMDB",
     "conflict_flag"        : "ChEBI + HMDB + COCONUT",
     "conflicting_sources"  : "ChEBI + HMDB + COCONUT",
+    "uniprot_enzymes"      : "HMDB + UniProt",
     "kegg_enzymes"         : "KEGG",
     "hmdb_enzymes"         : "HMDB",
     "reactome_catalysts"   : "Reactome",
@@ -132,6 +133,7 @@ COL_DESC = {
     "mmmdb_tissues"        : "Mouse tissues where compound was detected in MMMDB (semicolon-separated)",
     "conflict_flag"        : "True if sources disagree on endogenous vs exogenous origin",
     "conflicting_sources"  : "Per-source verdicts when they conflict (e.g. COCONUT=endogenous;ChEBI=exogenous)",
+    "uniprot_enzymes"      : "UniProt accession(s) of enzymes associated with this compound, from the HMDB protein_associations records (same records that supply hmdb_enzymes gene names). Unique per protein x organism — the join key across the enzyme sources. Species, Swiss-Prot/TrEMBL review status and EC are resolved from UniProt and kept in compound_enzymes (organism / uniprot_reviewed). Note: HMDB is human-centric, so this route is predominantly human; mouse enzymes need the EC-to-UniProt species query (not yet applied)",
     "kegg_enzymes"         : "EC numbers from KEGG (semicolon-separated)",
     "hmdb_enzymes"         : "Enzyme gene names from HMDB (semicolon-separated)",
     "reactome_catalysts"   : "Catalyst activity names from Reactome",
@@ -341,6 +343,16 @@ def apply_format(filepath: str):
             ("Enzyme Info (overlap)", "All 4 sources",            int((has_kegg & has_hmdb & has_reactome & has_brenda).sum()),    pct((has_kegg & has_hmdb & has_reactome & has_brenda).sum())),
             # 합계
             ("Enzyme Info", "Total (unique)", int((has_kegg | has_hmdb | has_reactome | has_brenda).sum()), pct((has_kegg | has_hmdb | has_reactome | has_brenda).sum())),
+        ]
+
+    # UniProt(단백질 계층 키) — 화합물 커버리지와 고유 accession 수
+    if "uniprot_enzymes" in df.columns:
+        up = df["uniprot_enzymes"].fillna("").astype(str)
+        has_up = up.str.strip() != ""
+        n_acc = len({a.strip() for cell in up for a in cell.split(";") if a.strip()})
+        rows += [
+            ("Enzyme Info (UniProt)", "Compounds with UniProt accession", int(has_up.sum()), pct(int(has_up.sum()))),
+            ("Enzyme Info (UniProt)", "Unique UniProt accessions", n_acc, ""),
         ]
 
     for i, (category, item, count, coverage) in enumerate(rows, 5):

@@ -140,6 +140,9 @@ SOURCE_VERSIONS = {
     "KEGG":    "KEGG-REST",
     "Reactome": "Reactome-ContentService",
     "BRENDA":  "BRENDA-SOAP",
+    # UniProt: 실제 release(예: UniProt-2026_03)는 collect_uniprot.py가 응답 헤더
+    # X-UniProt-Release에서 읽어 캐시 _meta에 기록한다. 아래는 캐시가 없을 때의 폴백.
+    "UniProt": "UniProt-REST",
 }
 
 

@@ -11,6 +11,7 @@ step4(분류결과, 종별) + 공유 캐시(identifier/hmdb/enzyme/brenda)를 In
   compound_origins         (long)                     DB별 원본 기원 라벨(다중 보존)
   compound_classification  (1행/inchikey)             최종 판정 + conflict
   compound_enzymes         (long)                     효소 관계 (KEGG/Reactome/HMDB/BRENDA)
+                                                      + HMDB 유래 UniProt accession/종
   compound_species         (long)                     inchikey ↔ species 관측 매핑
 
 전 테이블 provenance 컬럼(source, source_version, retrieved_at) 포함.
@@ -102,6 +103,12 @@ def normalize() -> dict:
     hmdb_idx = _load_json("hmdb_index.json")
     enz_cache = _load_json("enzyme_cache.json")
     brenda = _load_json("brenda_cache.json")
+    # UniProt 주석 캐시(선택). 없으면 accession만 채우고 organism/reviewed는 빈다 —
+    # 네트워크 없는 결정론적 재현을 깨지 않기 위해 의도적으로 optional.
+    uni_cache = _load_json("uniprot_cache.json")
+    uni_entries = uni_cache.get("entries", {}) if isinstance(uni_cache, dict) else {}
+    uni_ver = ((uni_cache.get("_meta") or {}).get("source_version")
+               if isinstance(uni_cache, dict) else None) or C.SOURCE_VERSIONS["UniProt"]
     src_hier = _load_source_hierarchy()   # HMDB 기원 라벨 → 6버킷 roll-up 주석
 
     coconut_ver = C.coconut_version()
@@ -315,11 +322,29 @@ def normalize() -> dict:
             enz_rows.append({"inchikey": ik, "enzyme_source": "Reactome", "ec_number": None,
                              "gene_name": cat, "source_version": C.SOURCE_VERSIONS["Reactome"],
                              "retrieved_at": rt})
+        # HMDB protein_associations: gene_name과 uniprot_id가 같은 레코드에서 나온다.
+        # 기존에는 genes(유전자명)만 읽고 accession을 버렸다 — proteins를 돌면서
+        # (gene, uniprot) 쌍을 함께 싣고, UniProt 캐시가 있으면 종/리뷰상태를 붙인다.
         h = hmdb_idx.get(ik, {})
-        for gene in (h.get("genes") or []):
+        h_at = h.get("retrieved_at", now)
+        seen_genes = set()
+        for p in (h.get("proteins") or []):
+            gene, acc = p.get("gene"), p.get("uniprot")
+            seen_genes.add(gene)
+            u = uni_entries.get(acc) or {}
             enz_rows.append({"inchikey": ik, "enzyme_source": "HMDB", "ec_number": None,
-                             "gene_name": gene, "source_version": hmdb_ver,
-                             "retrieved_at": h.get("retrieved_at", now)})
+                             "gene_name": gene, "uniprot_acc": acc,
+                             "organism": u.get("organism"),
+                             "organism_id": u.get("organism_id"),
+                             "uniprot_reviewed": u.get("reviewed"),
+                             "source_version": f"{hmdb_ver} + {uni_ver}" if acc else hmdb_ver,
+                             "retrieved_at": h_at})
+        # proteins에 name이 없어 genes에만 남은 유전자(있다면) 보존 — 기존 행 유실 방지
+        for gene in (h.get("genes") or []):
+            if gene not in seen_genes:
+                enz_rows.append({"inchikey": ik, "enzyme_source": "HMDB", "ec_number": None,
+                                 "gene_name": gene, "source_version": hmdb_ver,
+                                 "retrieved_at": h_at})
     # BRENDA: 이름 기반
     for name, ik in name_to_ik.items():
         b = brenda.get(name, {})
@@ -327,11 +352,14 @@ def normalize() -> dict:
             enz_rows.append({"inchikey": ik, "enzyme_source": "BRENDA", "ec_number": ec,
                              "gene_name": None, "source_version": C.SOURCE_VERSIONS["BRENDA"],
                              "retrieved_at": b.get("retrieved_at", now)})
-    enz_df = (pd.DataFrame(enz_rows) if enz_rows else pd.DataFrame(
-        columns=["inchikey", "enzyme_source", "ec_number", "gene_name",
-                 "source_version", "retrieved_at"]))
+    ENZ_COLS = ["inchikey", "enzyme_source", "ec_number", "gene_name",
+                "uniprot_acc", "organism", "organism_id", "uniprot_reviewed",
+                "source_version", "retrieved_at"]
+    enz_df = pd.DataFrame(enz_rows, columns=ENZ_COLS) if enz_rows else pd.DataFrame(columns=ENZ_COLS)
+    # uniprot_acc를 중복키에 포함: 유전자명이 같아도 accession이 다르면 다른 단백질이다
+    # (예: 동일 gene symbol에 Swiss-Prot/TrEMBL 엔트리가 병존).
     enz_df = enz_df.drop_duplicates(
-        ["inchikey", "enzyme_source", "ec_number", "gene_name"]).reset_index(drop=True)
+        ["inchikey", "enzyme_source", "ec_number", "gene_name", "uniprot_acc"]).reset_index(drop=True)
 
     # ---------- MSI 등급 + MMMDB 플래그를 compounds 마스터에 부여 ----------
     # 독립 DB 증거 수 = external_ids 중 MSI_DB_SOURCES(HMDB/KEGG/ChEBI/PubChem) 고유 소스 수.

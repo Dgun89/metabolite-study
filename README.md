@@ -30,7 +30,7 @@ Primary key throughout is `inchikey` (full 27-char); `inchikey14` (14-char skele
 | `compound_external_ids` | 8,092 | one per (compound, DB, id) | inchikey, source, external_id, + provenance |
 | `compound_origins` | 23,278 | one per (compound, origin fact) | inchikey, source, origin_label, origin_category, origin_level, + provenance |
 | `compound_classification` | 1,721 | one row per compound | inchikey, drug_food, classification, classification_basis, conflict_flag, conflicting_sources, source_verdicts, + ruleset provenance |
-| `compound_enzymes` | 6,592 | one per (compound, EC) | inchikey, ec, source, + provenance |
+| `compound_enzymes` | 6,676 | one per (compound, enzyme fact) | inchikey, enzyme_source, ec_number, gene_name, **uniprot_acc, organism, organism_id, uniprot_reviewed**, + provenance |
 | `compound_species` | 1,930 | one per (compound, dataset) | inchikey, species ∈ {human_serum, mouse_serum, mouse_feces}, cnp_id |
 
 **Classification is v4 (2026-07-27 advisor meeting): priority rules dropped — the column now lists each DB's verdict in parallel** (e.g. `ChEBI:exogenous; HMDB:endogenous; COCONUT:endogenous`) instead of forcing one label, because each DB measures a different axis (ChEBI=produced / HMDB=detected / COCONUT=isolated-from). Evidence counts are therefore non-exclusive: **has-endogenous-evidence 290 / has-exogenous-evidence 816 / unverified 784**; **169** compounds carry an endo↔exo conflict, **58** are MMMDB-confirmed endogenous. A **`drug_food`** flag (drug = DrugBank/DrugCentral present, food = FooDB present) sits before `classification` as a display-only 1st-pass filter — rows are never dropped (FooDB presence is a *detection* axis and includes many endogenous compounds). DB-support level (structure-consensus proxy, not spectral MSI): **L2 667 / L3 1,054**.
@@ -51,6 +51,7 @@ Dataset labels may contain characters that are unsafe in paths (e.g. the parenth
 3. **`build_hmdb_index.py`** — stream the 6.1 GB HMDB XML with `iterparse`, extracting ontology source / protein / biospecimen for target InChIKeys.
 4. **`04_classify_run.py`** + **`classify.py`** — endogenous/exogenous with per-source verdicts. **`classify_row_v4()`** (current) drops the priority rules entirely: it reuses each DB's independent verdict but **lists them in parallel** (`ChEBI:…; HMDB:…; COCONUT:…; MMMDB:…`) rather than forcing one label — different DBs measure different axes, so collapsing them mangles the axis. `conflict_flag` / `conflicting_sources` still flag endo↔exo disagreement. Earlier `classify_row()` / `_v2()` / `_v3()` are **kept frozen** for back-compat and before/after audit (we stack rule versions, never overwrite them).
 5. **`collect_enzymes.py`** — KEGG `link/enzyme` EC + Reactome catalyst mapping. **`collect_brenda.py`** — BRENDA SOAP (zeep), name → EC; auth `sha256(password)`, ≤ 1 req/sec.
+5b. **`collect_uniprot.py`** — resolve the UniProt accessions that `build_hmdb_index.py` already extracts from HMDB `protein_associations` (they were parsed but discarded downstream). Batched `GET /uniprotkb/accessions` → species, Swiss-Prot/TrEMBL review status, EC, protein name → `.work/interim/uniprot_cache.json`. Organism is **read from UniProt, not assumed**: HMDB is human-centric but not exclusively human of 1,168 resolved accessions, 1,135 are human, 5 mouse and 28 belong to 21 other species, incl. snake-venom proteases).
 6. **`normalize.py`** — assemble the 6 long-format normalized tables; recompute classification with `classify_row_v4` (parallel per-DB verdicts) + the `drug_food` display flag, assign the DB-support level (`db_support_level`/`db_support_evidence`; structure-consensus proxy, not spectral MSI), merge UniChem cross-links and MMMDB tissue origins. Explicit row sort: endogenous-evidence-first → compound_name → inchikey.
 7. **`export_view.py`** — build the wide human-readable view and write the 4-sheet xlsx (Data / Legend / Summary / Classification Rules) via `format_excel.py`, with color-grouped column headers and clickable DB-homepage links on the External DB ID headers (COCONUT…LIPID MAPS).
 8. **`compare_legacy.py`** — reliability comparison against the original step29 DB on the common InChIKey intersection.
@@ -67,11 +68,13 @@ python pipeline/export_view.py        # rebuild data/export/*.xlsx
 python verify_reproduction.py         # compare against REPRODUCE_reference_fingerprints.json
 ```
 
+`uniprot_cache.json` is **optional** on this path: without it `normalize.py` still writes `uniprot_acc` (it comes from the HMDB index, not the network) and only leaves `organism` / `organism_id` / `uniprot_reviewed` empty. The deterministic stages therefore stay network-free.
+
 `verify_reproduction.py` compares row counts and a sort-invariant SHA-256 of each normalized table against the committed baseline (`REPRODUCE_reference_fingerprints.json`), so a match confirms byte-identical **data** regardless of xlsx formatting/timestamps. The cache bundle needed to seed `.work/interim/` is distributed out-of-band (not in git).
 
 ### Exports (`data/export/*.xlsx`)
 
-Per-dataset and combined workbooks, InChIKey-first column layout, headers color-grouped by category (Basic Identifiers / Dataset Membership / External DB IDs / **Drug / Food** / Classification / Classification Sources / Classification Metadata / DB Support / Classification Conflicts / Enzyme Information). The External DB ID headers (COCONUT, PubChem, KEGG, HMDB, ChEBI, DrugBank, FooDB, LIPID MAPS) are clickable links to each database's homepage. A dedicated **Classification Rules** sheet documents the **v4 method** — each DB's verdict is listed in parallel (no priority ordering), what axis each DB reads (ChEBI=produced / HMDB=detected / COCONUT=isolated-from / MMMDB=tissue-measured), and how `conflict_flag`/`conflicting_sources` are derived.
+Per-dataset and combined workbooks, InChIKey-first column layout, headers color-grouped by category (Basic Identifiers / Dataset Membership / External DB IDs / **Drug / Food** / Classification / Classification Sources / Classification Metadata / DB Support / Classification Conflicts / Enzyme Information). The External DB ID headers (COCONUT, PubChem, KEGG, HMDB, ChEBI, DrugBank, FooDB, LIPID MAPS) are clickable links to each database's homepage. The Enzyme Information group now leads with **`uniprot_enzymes`** (UniProt accessions): unlike EC (a reaction class, species-agnostic) or a gene symbol (species-ambiguous, non-unique), an accession is unique per protein × organism, so it is the key that makes the four enzyme sources joinable — and the only one of them that carries species, which matters for the human vs mouse comparison. A dedicated **Classification Rules** sheet documents the **v4 method** — each DB's verdict is listed in parallel (no priority ordering), what axis each DB reads (ChEBI=produced / HMDB=detected / COCONUT=isolated-from / MMMDB=tissue-measured), and how `conflict_flag`/`conflicting_sources` are derived.
 
 Export filenames carry a `yymmdd` creation-date stamp (no `-`), e.g. `combined_260731.xlsx`, because the export is a view that is regenerated on every run — it is **not** a frozen "final". The stamp defaults to today but can be pinned with `METABO_STAMP=yymmdd` so a run on another machine on a later day reproduces the same filename.
 
@@ -152,6 +155,16 @@ metabolite-study/
 
 ### Progress log
 
+- **2026-10-02** — UniProt protein layer (route 1: HMDB-sourced accessions):
+  - **Where UniProt belongs.** Not in `External DB IDs` — that block holds IDs for the *same chemical structure* (UniChem-resolved), and UniChem does not return UniProt. A UniProt accession identifies the *protein* that metabolises the compound, so it goes in **Enzyme Information**, placed first in the group.
+  - **Why that group needed it.** Its four columns used three incompatible key types — EC (`kegg_enzymes`, `brenda_enzymes`), gene symbol (`hmdb_enzymes`), free-text activity name (`reactome_catalysts`) — so there was no way to tell whether KEGG's EC and HMDB's gene name referred to the same protein, and no column carried species at all.
+  - **The accessions were already in the cache and being thrown away.** `build_hmdb_index.py:46` parses `uniprot_id` into `proteins[*].uniprot`, but `normalize.py` only read `genes`. Recovering them needs **no re-collection**: 141 compounds / 1,194 unique accessions, exactly the 141 compounds that already had `hmdb_enzymes` gene names (same HMDB protein records, better key).
+  - New **`pipeline/collect_uniprot.py`** resolves those accessions to species / review status / EC / protein name (`uniprot_cache.json`, UniProt release 2026_03): 1,168 resolved, 26 obsolete-or-demerged, 1,133 reviewed (Swiss-Prot). Organism is read, not assumed — 1,135 human, 5 mouse, 28 across 21 other species (snake-venom proteases, *H. pylori*, *Apis cerana*…), all 33 non-human rows landing on a single compound.
+  - `compound_enzymes` gains `uniprot_acc` / `organism` / `organism_id` / `uniprot_reviewed`; dedup key extended with `uniprot_acc` (same gene symbol can carry distinct Swiss-Prot/TrEMBL entries). 6,592 → **6,676** rows.
+  - Export gains one column, **`uniprot_enzymes`**, registered in all four `format_excel.py` dictionaries + two Summary rows. Verified against `combined_260731.xlsx`: 2,329 rows unchanged, **0 changed cells across the 30 pre-existing data columns**, 31 → 32 columns.
+  - **Known issue (pre-existing, unrelated):** `REPRODUCE_reference_fingerprints.json` is still the pre-`osaka(1)` baseline (1,721 compounds), so 5 of 6 tables already reported DIFFER before this change. `compound_enzymes` was the last MATCH and now differs **by design**. The baseline was deliberately left untouched — regenerating it is a separate decision about the reliability audit, not a side effect of this change.
+  - Not applied yet: EC → UniProt per-species queries (route 2, the mouse coverage path, which also flags non-mammalian ECs such as `2.6.1.83` that currently sit unmarked in the EC columns) and the ChEBI → UniProt/Rhea route (route 3, widest reach but it pulls in binding/inhibition annotations, not just catalysis).
+
 - **2026-07-31** — fourth dataset admitted; label→path safety; `CAS` column:
   - **`osaka(1)`** registered in `config.SPECIES` as a collaborator-provided panel. Numbered label so further deliveries can be added as `osaka(2)`… The raw workbook stays under `data/osaka/0731/` (not in git, per the raw-data principle); the seed CSV carries the resolved InChIKey.
   - **`config.dataset_slug()`** added — dataset labels may hold path-unsafe characters, so directory names, step-file names and export filenames are now built from the slug throughout (`config.py`, `normalize.py`, `04_classify_run.py`, `collect_brenda.py`, `export_view.py`). Slug == label for the original three, so no existing path moved.
@@ -218,7 +231,7 @@ metabolite-study/
 | `compound_external_ids` | 8,092 | (화합물, DB, id) 1개 | inchikey, source, external_id, + provenance |
 | `compound_origins` | 23,278 | (화합물, 기원 사실) 1개 | inchikey, source, origin_label, origin_category, origin_level, + provenance |
 | `compound_classification` | 1,721 | 화합물당 1행 | inchikey, drug_food, classification, classification_basis, conflict_flag, conflicting_sources, source_verdicts, + ruleset provenance |
-| `compound_enzymes` | 6,592 | (화합물, EC) 1개 | inchikey, ec, source, + provenance |
+| `compound_enzymes` | 6,676 | (화합물, 효소 사실) 1개 | inchikey, enzyme_source, ec_number, gene_name, **uniprot_acc, organism, organism_id, uniprot_reviewed**, + provenance |
 | `compound_species` | 1,930 | (화합물, 데이터셋) 1개 | inchikey, species ∈ {human_serum, mouse_serum, mouse_feces}, cnp_id |
 
 **분류는 v4(2026-07-27 교수님 회의): 우선순위 규칙 폐기 — 컬럼이 이제 각 DB의 판정을 병렬로 나열**한다(예: `ChEBI:exogenous; HMDB:endogenous; COCONUT:endogenous`). 각 DB가 서로 다른 축(ChEBI=만들었나 / HMDB=검출됐나 / COCONUT=분리됐나)을 재므로 하나로 합치지 않는다. 따라서 근거 카운트는 배타적이지 않다: **내인성 근거 포함 290 / 외인성 근거 포함 816 / unverified 784**; **169**개 화합물에 endo↔exo 충돌, **58**개 MMMDB 확인 내인성. classification **앞**에 **`drug_food`** 플래그(drug = DrugBank/DrugCentral 존재, food = FooDB 존재)가 1차 필터 표시로 놓이지만 **행은 지우지 않는다**(FooDB 존재는 *검출* 축이라 내인성 화합물도 다수 포함). DB 지지 등급(구조 합의 프록시, 분광 MSI 아님): **L2 667 / L3 1,054**.
@@ -239,6 +252,7 @@ metabolite-study/
 3. **`build_hmdb_index.py`** — 6.1GB HMDB XML을 `iterparse` 스트리밍, 대상 InChIKey의 ontology source/protein/biospecimen 추출.
 4. **`04_classify_run.py`** + **`classify.py`** — 소스별 판정 기반 내인성/외인성. **`classify_row_v4()`**(현재)는 우선순위 규칙을 완전히 폐기하고 각 DB의 독립 판정을 **병렬로 나열**한다(`ChEBI:…; HMDB:…; COCONUT:…; MMMDB:…`) — DB마다 축이 달라 하나로 합치면 축을 뭉갠다. `conflict_flag` / `conflicting_sources`는 여전히 endo↔exo 불일치를 표시한다. 이전 `classify_row()` / `_v2()` / `_v3()`는 하위호환·전후 비교를 위해 **박제로 보존**(규칙 버전을 덮어쓰지 않고 쌓는다).
 5. **`collect_enzymes.py`** — KEGG `link/enzyme` EC + Reactome catalyst. **`collect_brenda.py`** — BRENDA SOAP(zeep), 이름 → EC; 인증 `sha256(password)`, ≤ 1 req/sec.
+5b. **`collect_uniprot.py`** — `build_hmdb_index.py`가 HMDB `protein_associations`에서 이미 뽑아두던 UniProt accession(파싱은 됐지만 하류에서 버려지던 값)을 해석. `GET /uniprotkb/accessions` 배치 조회 → 생물종·Swiss-Prot/TrEMBL 리뷰상태·EC·단백질명 → `.work/interim/uniprot_cache.json`. 종은 **가정하지 않고 UniProt에서 읽는다**: HMDB가 사람 중심이지만 사람 전용은 아니다(해석된 1,168개 중 사람 1,135 · 쥐 5 · 나머지 28개가 21개 다른 종, 뱀독 프로테아제 포함).
 6. **`normalize.py`** — 6개 long-format 정규화 테이블 조립; `classify_row_v4`(DB별 병렬 판정) + `drug_food` 표시 플래그로 분류 재계산, DB 지지 등급 부여(`db_support_level`/`db_support_evidence`; 구조 합의 프록시, 분광 MSI 아님), UniChem 교차링크·MMMDB 조직 기원 병합. 명시적 행정렬: 내인성 근거 우선 → compound_name → inchikey.
 7. **`export_view.py`** — 넓은 형태 뷰 생성, `format_excel.py`로 4시트 xlsx(Data / Legend / Summary / Classification Rules) 작성, 컬럼 헤더 색상 그룹화 + External DB ID 헤더(COCONUT…LIPID MAPS)에 DB 홈페이지 클릭 링크.
 8. **`compare_legacy.py`** — 기존 step29 DB와 공통 InChIKey 교집합에서 신뢰성 대조.
@@ -255,11 +269,13 @@ python pipeline/export_view.py        # data/export/*.xlsx 재생성
 python verify_reproduction.py         # REPRODUCE_reference_fingerprints.json 과 대조
 ```
 
+`uniprot_cache.json`은 이 경로에서 **선택**이다: 없어도 `normalize.py`는 `uniprot_acc`를 그대로 채우고(값의 출처가 네트워크가 아니라 HMDB 인덱스이므로) `organism` / `organism_id` / `uniprot_reviewed`만 빈다. 결정론적 단계는 여전히 네트워크 없이 돈다.
+
 `verify_reproduction.py`는 각 정규화 테이블의 행수와 정렬 불변 SHA-256을 커밋된 기준선(`REPRODUCE_reference_fingerprints.json`)과 비교하므로, 일치하면 xlsx 서식·타임스탬프와 무관하게 **데이터**가 바이트 단위로 동일함을 확인한다. `.work/interim/`을 채울 캐시 번들은 git이 아닌 별도 경로로 배포한다.
 
 ### Export (`data/export/*.xlsx`)
 
-데이터셋별·통합 워크북, InChIKey 맨앞 컬럼 배치, 카테고리별 헤더 색상 그룹(Basic Identifiers / Dataset Membership / External DB IDs / **Drug / Food** / Classification / Classification Sources / Classification Metadata / DB Support / Classification Conflicts / Enzyme Information). External DB ID 헤더(COCONUT, PubChem, KEGG, HMDB, ChEBI, DrugBank, FooDB, LIPID MAPS)는 각 DB 홈페이지로 가는 클릭 링크다. 별도의 **Classification Rules** 시트가 **v4 방식**을 명시한다 — 각 DB 판정을 병렬로 나열(우선순위 없음), 각 DB가 읽는 축(ChEBI=만들었나 / HMDB=검출됐나 / COCONUT=분리됐나 / MMMDB=조직실측), `conflict_flag`/`conflicting_sources` 산출 방식.
+데이터셋별·통합 워크북, InChIKey 맨앞 컬럼 배치, 카테고리별 헤더 색상 그룹(Basic Identifiers / Dataset Membership / External DB IDs / **Drug / Food** / Classification / Classification Sources / Classification Metadata / DB Support / Classification Conflicts / Enzyme Information). External DB ID 헤더(COCONUT, PubChem, KEGG, HMDB, ChEBI, DrugBank, FooDB, LIPID MAPS)는 각 DB 홈페이지로 가는 클릭 링크다. Enzyme Information 그룹은 이제 **`uniprot_enzymes`**(UniProt accession)로 시작한다: EC(반응 분류, 종 무관)나 gene symbol(종 모호·비고유)과 달리 accession은 **단백질 × 생물종** 단위로 고유해, 효소 4개 소스를 조인 가능하게 묶는 기준 키이자 그중 유일하게 종을 들고 있는 키다(사람 vs 쥐 비교에 직결). 별도의 **Classification Rules** 시트가 **v4 방식**을 명시한다 — 각 DB 판정을 병렬로 나열(우선순위 없음), 각 DB가 읽는 축(ChEBI=만들었나 / HMDB=검출됐나 / COCONUT=분리됐나 / MMMDB=조직실측), `conflict_flag`/`conflicting_sources` 산출 방식.
 
 export 파일명에는 생성일 스탬프 `yymmdd`(`-` 없음)가 붙는다(예: `combined_260731.xlsx`). export는 매 실행마다 재생성되는 뷰이므로 동결본 'final'이 아니기 때문. 스탬프 기본값은 '오늘'이지만 `METABO_STAMP=yymmdd`로 고정할 수 있다 — 다른 PC에서 하루 뒤에 돌려도 같은 파일명을 재현해야 할 때 쓴다.
 
@@ -328,6 +344,7 @@ metabolite-study/
 │  ├─ 04_classify_run.py    분류 실행기
 │  ├─ collect_enzymes.py    KEGG EC + Reactome catalyst
 │  ├─ collect_brenda.py     BRENDA SOAP 효소(EC)
+│  ├─ collect_uniprot.py    HMDB 유래 UniProt accession → 종/리뷰상태/EC 해석
 │  ├─ normalize.py          6개 정규화 테이블 조립
 │  ├─ export_view.py        정규화 → 4시트 xlsx
 │  ├─ compare_legacy.py     legacy step29 신뢰성 대조
@@ -339,6 +356,16 @@ metabolite-study/
 ```
 
 ### 진행 로그
+
+- **2026-10-02** — UniProt 단백질 계층 편입 (경로 1: HMDB 유래 accession):
+  - **UniProt이 들어갈 계층.** `External DB IDs`가 아니다 — 그 블록은 *같은 화학구조*를 가리키는 다른 DB의 id(UniChem 해석)만 담으며, UniChem은 UniProt을 반환하지 않는다. UniProt accession은 그 화합물이 아니라 그 화합물을 대사하는 *단백질*이므로 **Enzyme Information** 그룹, 그 안에서도 맨 앞에 둔다.
+  - **그 그룹에 왜 필요했나.** 기존 4컬럼이 키 타입 3종으로 갈려 있었다 — EC(`kegg_enzymes`, `brenda_enzymes`), gene symbol(`hmdb_enzymes`), 자유 텍스트 activity 이름(`reactome_catalysts`). KEGG의 EC와 HMDB의 유전자명이 같은 단백질인지 판정할 방법이 없었고, 생물종을 담는 컬럼은 아예 없었다.
+  - **accession은 이미 캐시에 있었고 버려지고 있었다.** `build_hmdb_index.py:46`이 `uniprot_id`를 `proteins[*].uniprot`에 파싱해 두는데 `normalize.py`는 `genes`만 읽었다. 되살리는 데 **재수집이 필요 없다**: 141 화합물 / 고유 accession 1,194개 — 기존에 `hmdb_enzymes` 유전자명이 있던 바로 그 141개(같은 HMDB protein 레코드, 더 좋은 키).
+  - 신규 **`pipeline/collect_uniprot.py`** 가 그 accession을 종·리뷰상태·EC·단백질명으로 해석(`uniprot_cache.json`, UniProt release 2026_03): 1,168 해석 / 26 폐기·병합 / 1,133 reviewed(Swiss-Prot). 종은 가정하지 않고 읽는다 — 사람 1,135, 쥐 5, 나머지 28개가 21개 종(뱀독 프로테아제, *H. pylori*, *Apis cerana* 등)이며 비사람 33행은 전부 한 화합물에 몰려 있다.
+  - `compound_enzymes`에 `uniprot_acc` / `organism` / `organism_id` / `uniprot_reviewed` 추가, 중복키에 `uniprot_acc` 포함(같은 gene symbol에 Swiss-Prot/TrEMBL 엔트리가 병존할 수 있음). 6,592 → **6,676**행.
+  - Export에 컬럼 1개 **`uniprot_enzymes`** 추가, `format_excel.py` 등록 딕셔너리 4곳 + Summary 2행 반영. `combined_260731.xlsx`와 대조 검증: 2,329행 불변, **기존 30개 데이터 컬럼에서 변경 셀 0건**, 31 → 32 컬럼.
+  - **알려진 이슈(이번 변경과 무관, 기존):** `REPRODUCE_reference_fingerprints.json`이 아직 `osaka(1)` 편입 이전 기준(1,721 화합물)이라, 이번 변경 전에도 6개 중 5개 테이블이 DIFFER였다. 마지막으로 MATCH였던 `compound_enzymes`가 이제 **설계대로** 달라진다. baseline은 **의도적으로 건드리지 않았다** — 재생성은 신뢰성 감사에 대한 별도 판단이지 이번 변경의 부수효과로 처리할 일이 아니다.
+  - 아직 미적용: EC → UniProt 종별 조회(경로 2, 쥐 커버리지 경로이자 `2.6.1.83`처럼 현재 EC 컬럼에 표시 없이 섞여 있는 비포유류 EC를 걸러주는 장치), ChEBI → UniProt/Rhea 경로(경로 3, 도달범위 최대지만 촉매가 아닌 결합·저해 주석까지 끌고 옴).
 
 - **2026-07-31** — 네 번째 데이터셋 편입, 라벨→경로 안전화, `CAS` 컬럼:
   - **`osaka(1)`**을 외부 제공 패널로 `config.SPECIES`에 등록. 추가 제공분을 `osaka(2)`…로 붙일 수 있게 번호를 매긴 라벨. 원본 워크북은 `data/osaka/0731/`에 두되 git에는 올리지 않는다(원본 데이터 원칙); 시드 CSV가 해석된 InChIKey를 들고 있다.

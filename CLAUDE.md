@@ -67,7 +67,7 @@ for stereoisomer-collapsed matching. Multi-valued facts are one row per fact, ea
 | `compound_external_ids` | one per (compound, DB, id) — COCONUT/PubChem/ChEBI/HMDB/DrugBank/etc. |
 | `compound_origins` | one per (compound, origin fact) — includes HMDB `origin_category`/`origin_level` roll-up |
 | `compound_classification` | one per compound — `drug_food` flag, `classification` (per-DB verdicts), conflict flags |
-| `compound_enzymes` | one per (compound, EC) |
+| `compound_enzymes` | one per (compound, enzyme fact) — EC / gene / UniProt accession + organism |
 | `compound_species` | one per (compound, dataset) |
 
 ### Pipeline stage order (`pipeline/`)
@@ -84,6 +84,10 @@ Numbered scripts are meant to run in order; each writes to `.work/interim/{slug}
 4. `04_classify_run.py` + `classify.py` — endogenous/exogenous classification.
 5. `collect_enzymes.py` / `collect_brenda.py` — KEGG/Reactome EC mapping; BRENDA SOAP (rate-limited to
    ≤1 req/sec, auth via `sha256(password)`, credentials in `.env` as `BRENDA_EMAIL`/`BRENDA_PASSWORD`).
+5b. `collect_uniprot.py` — resolves the UniProt accessions already parsed out of HMDB `protein_associations`
+   by step 3 (species / Swiss-Prot review status / EC) → `uniprot_cache.json`. The cache is **optional** for
+   `normalize.py`: without it `uniprot_acc` is still written (it comes from the HMDB index), only the
+   organism fields stay empty — keep it that way so normalize → export remains network-free.
 6. `normalize.py` — assembles the 6 normalized tables; this is where classification, DB-support level, and
    MMMDB tissue-origin merges actually get (re)computed for the final output — not in step 4.
 7. `export_view.py` — normalized tables → 4-sheet xlsx via `format_excel.py` (color-grouped headers,

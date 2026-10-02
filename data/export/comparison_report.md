@@ -1,7 +1,7 @@
 # Legacy 신뢰성 대조 리포트
 
 - 기준(baseline): `legacy/etc/metabolites_step29.xlsx` — 기존 수기 큐레이션 DB
-- 대조(reproduced): `data/export/{species}_final.xlsx` — 새 InChIKey 정규화 파이프라인 재현
+- 대조(reproduced): `data/export/{species}_yymmdd.xlsx` (최신 스냅샷 자동 선택) — 새 InChIKey 정규화 파이프라인 재현
 - 대조 축: 공통 InChIKey 교집합 (full 27자 / skeleton 14자)
 
 분류 라벨(endogenous/exogenous/unverified) 일치율과 외부 식별자·효소 커버리지 일치를 계산한다.
@@ -10,7 +10,7 @@
 
 ### InChIKey full 교집합 (n=489)
 
-- **classification 일치**: 468/489 (95.7%)
+- **classification 일치**: 174/489 (35.6%)
 
 | 외부 ID | 양쪽 보유 | 값 일치 |
 |---|---|---|
@@ -28,7 +28,7 @@
 
 ### InChIKey skeleton 교집합 (n=861)
 
-- **classification 일치**: 787/861 (91.4%)
+- **classification 일치**: 380/861 (44.1%)
 
 | 외부 ID | 양쪽 보유 | 값 일치 |
 |---|---|---|
@@ -44,11 +44,11 @@
 | reactome_catalysts | 848/861 (98.5%) |
 | brenda_enzymes | 857/861 (99.5%) |
 
-## human — human vs 기존 step29
+## human_serum — human_serum vs 기존 step29
 
 ### InChIKey full 교집합 (n=18)
 
-- **classification 일치**: 18/18 (100.0%)
+- **classification 일치**: 4/18 (22.2%)
 
 | 외부 ID | 양쪽 보유 | 값 일치 |
 |---|---|---|
@@ -66,7 +66,7 @@
 
 ### InChIKey skeleton 교집합 (n=28)
 
-- **classification 일치**: 25/28 (89.3%)
+- **classification 일치**: 8/28 (28.6%)
 
 | 외부 ID | 양쪽 보유 | 값 일치 |
 |---|---|---|
@@ -86,7 +86,7 @@
 
 ### InChIKey full 교집합 (n=54)
 
-- **classification 일치**: 48/54 (88.9%)
+- **classification 일치**: 14/54 (25.9%)
 
 | 외부 ID | 양쪽 보유 | 값 일치 |
 |---|---|---|
@@ -104,7 +104,7 @@
 
 ### InChIKey skeleton 교집합 (n=90)
 
-- **classification 일치**: 71/90 (78.9%)
+- **classification 일치**: 21/90 (23.3%)
 
 | 외부 ID | 양쪽 보유 | 값 일치 |
 |---|---|---|

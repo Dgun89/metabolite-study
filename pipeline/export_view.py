@@ -144,6 +144,9 @@ def build_wide(tables: dict, inchikeys, with_datasets: bool = False) -> pd.DataF
     out["mmmdb_detected"]   = base["inchikey"].map(comp_i["mmmdb_detected"]).fillna(False).values
     out["mmmdb_tissues"]    = m(ori_val("MMMDB"))
     # --- Enzyme Information ---
+    # UniProt accession을 그룹 맨 앞에 둔다: EC(반응 분류)·gene symbol(종 모호)과 달리
+    # 단백질 × 생물종 단위로 고유해, 나머지 4개 소스를 묶는 기준 키 역할을 한다.
+    out["uniprot_enzymes"]   = m(enz_val("HMDB", "uniprot_acc"))
     out["kegg_enzymes"]      = m(enz_val("KEGG", "ec_number"))
     out["hmdb_enzymes"]      = m(enz_val("HMDB", "gene_name"))
     out["reactome_catalysts"] = m(enz_val("Reactome", "gene_name"))
